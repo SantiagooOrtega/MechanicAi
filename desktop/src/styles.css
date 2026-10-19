@@ -354,3 +354,7 @@ a.list-item:hover { transform: translateX(3px); }
 .landing .sh-navcta:hover { background: var(--accent-solid); border-color: var(--accent-solid); color: #fff; }
 .landing .sh-btn { background: var(--accent-solid); color: #fff; box-shadow: 0 10px 30px -10px var(--accent-solid); }
 .landing .sh-credit { display: none; }
+
+/* En Electron las zonas `drag` capturan el clic aunque haya algo encima:
+   todo lo que se superpone al sidebar o a la barra superior debe ser no-drag */
+.dd, [data-radix-popper-content-wrapper], .overlay, .modal { -webkit-app-region: no-drag; }

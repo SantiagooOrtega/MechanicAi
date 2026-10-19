@@ -222,7 +222,7 @@ const CSS = `
 .mq-wrap{
   --mq-bg:#070708; --mq-text:#f5f5f5; --mq-dim:rgba(245,245,245,.5);
   --mq-amber:#ef4444; --mq-amber-soft:#f87171; --mq-steel:#ececec;
-  position:absolute;inset:0;z-index:30;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  position:absolute;inset:0;z-index:30;overflow:hidden;display:flex;-webkit-app-region:no-drag;align-items:center;justify-content:center;
   background:var(--mq-bg);color:var(--mq-text);font-family:'Inter Variable',system-ui,sans-serif;
 }
 .mq-wrap *{box-sizing:border-box}
