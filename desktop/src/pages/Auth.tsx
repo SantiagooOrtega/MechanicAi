@@ -1,17 +1,28 @@
-import { useEffect, useState, type FormEvent, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import '@fontsource/instrument-serif/400-italic.css';
+import { ArrowRight } from 'lucide-react';
 import { useAuth } from '../auth';
 import { useT } from '../i18n';
 import { SWITCH_USER_FLAG } from '../components/Layout';
-import SculptureHero from '../components/ui/liquid-sculpture-hero';
+import { LogoMark } from '../components/Logo';
+import { HeroScrub } from '../components/ui/hero-scrub';
+import { drawExplodedCar } from '../components/ui/car-exploded';
 import MercuryLogin from '../components/ui/mercury-login';
 
 type Mode = 'login' | 'register';
 
+// SOLO PARA PRUEBAS LOCALES: fotogramas del video promocional del Ferrari Amalfi (demo de terceros, sin licencia).
+// Antes de publicar la app, reemplázalos por un video propio o con licencia.
+const HERO_FRAMES = {
+  count: 300,
+  url: (i: number) =>
+    `https://raw.githubusercontent.com/duthiljean/ferrari-hero-demo/main/${String(i + 1).padStart(4, '0')}.webp`,
+};
+
 export default function Auth() {
   const { login, register } = useAuth();
-  const { t } = useT();
+  const { t, lang, setLang } = useT();
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
   const [panel, setPanel] = useState<Mode | null>(() => {
     try {
       if (sessionStorage.getItem(SWITCH_USER_FLAG)) {
@@ -32,20 +43,17 @@ export default function Auth() {
     return () => window.removeEventListener('keydown', onKey);
   }, [panel]);
 
-  // Los enlaces del hero usan #entrar / #registro; el resto no navega
-  function onHeroClick(e: MouseEvent) {
-    const link = (e.target as HTMLElement).closest('a');
-    if (!link || link.target === '_blank') return;
-    e.preventDefault();
-    const hash = link.getAttribute('href');
-    if (hash === '#entrar') open('login');
-    if (hash === '#registro') open('register');
-  }
-
-  function open(mode: Mode) {
+  const open = (mode: Mode) => {
     setError(null);
     setPanel(mode);
-  }
+  };
+
+  const draw = useCallback(
+    (ctx: CanvasRenderingContext2D, progress: number, w: number, h: number) => drawExplodedCar(ctx, progress, w, h),
+    []
+  );
+
+  const headlineLines = useMemo(() => t('land.headline').split('\n'), [t]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -62,38 +70,51 @@ export default function Auth() {
   }
 
   return (
-    <div className="landing" onClick={onHeroClick}>
-      <SculptureHero
-        theme="dark"
-        themeToggle={false}
-        loadFonts={false}
-        darkBackground="#0a0a0b"
-        textColor="#f5f5f5"
-        accentColor="#ef4444"
-        headingFont="'Space Grotesk Variable', 'Inter Variable', sans-serif"
-        accentFont="'Instrument Serif', Georgia, serif"
-        bodyFont="'Inter Variable', system-ui, sans-serif"
-        brand="MechanicIA"
-        navLinks={[
-          { label: t('nav.diagnosis'), href: '#' },
-          { label: t('nav.vehicles'), href: '#' },
-          { label: t('nav.maintenance'), href: '#' },
-        ]}
-        navCta={{ label: t('land.signIn'), href: '#entrar' }}
-        eyebrow={t('land.eyebrow')}
-        headline={t('land.headline')}
-        headlineAccent={t('land.accent')}
-        body={t('land.body')}
-        primaryCta={{ label: t('land.create'), href: '#registro' }}
-        secondaryCta={{ label: t('land.haveAccount'), href: '#entrar' }}
-        hint={t('land.hint')}
-        backdropText={t('land.backdrop')}
-        radius={240}
-        strength={1.1}
-        turbulence={1.2}
-        liquid={1.2}
-        intro
-      />
+    <div className="landing">
+      <div className="landing-scroll" ref={setScroller}>
+        <header className="land-bar">
+          <div className="land-brand">
+            <LogoMark size={34} />
+            <span>Mechanic<em>IA</em></span>
+          </div>
+          <div className="land-actions">
+            <div className="land-lang" role="group" aria-label="Language">
+              {(['es', 'en'] as const).map((l) => (
+                <button key={l} className={lang === l ? 'on' : ''} onClick={() => setLang(l)}>{l.toUpperCase()}</button>
+              ))}
+            </div>
+            <button className="btn btn-ghost" onClick={() => open('login')}>{t('land.signIn')}</button>
+            <button className="btn btn-primary" onClick={() => open('register')}>{t('land.create')}</button>
+          </div>
+        </header>
+
+        {scroller && (
+          <HeroScrub
+            scroller={scroller}
+            frames={HERO_FRAMES}
+            draw={draw}
+            titleTop="Mechanic"
+            titleBottom={<em>IA</em>}
+            scrollHint={t('land.scroll')}
+          />
+        )}
+
+        <section className="land-cta">
+          <p className="land-eyebrow">{t('land.ctaEyebrow')}</p>
+          <h1>
+            {headlineLines[0]}
+            <br />
+            <em>{headlineLines[1]}</em>
+          </h1>
+          <p className="land-body">{t('land.body')}</p>
+          <div className="land-buttons">
+            <button className="btn btn-primary btn-lg" onClick={() => open('register')}>
+              {t('land.create')} <ArrowRight size={18} />
+            </button>
+            <button className="btn btn-lg" onClick={() => open('login')}>{t('land.haveAccount')}</button>
+          </div>
+        </section>
+      </div>
 
       <AnimatePresence>
         {panel && (
