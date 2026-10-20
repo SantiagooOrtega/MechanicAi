@@ -168,6 +168,14 @@ const es = {
   'login.hasAccount': '¿Ya tienes cuenta?',
   'login.toRegister': 'CREAR CUENTA',
   'login.toLogin': 'INICIAR SESIÓN',
+  'auth.loginTitle': 'Bienvenido de vuelta',
+  'auth.registerTitle': 'Crea tu cuenta',
+  'auth.loginSub': 'Entra para ver tus vehículos y diagnósticos.',
+  'auth.registerSub': 'Empieza a diagnosticar tu vehículo en minutos.',
+  'auth.loginAction': 'Entrar',
+  'auth.registerAction': 'Crear cuenta',
+  'auth.showPassword': 'Mostrar contraseña',
+  'auth.hidePassword': 'Ocultar contraseña',
 } as const;
 
 export type Key = keyof typeof es;
@@ -328,6 +336,14 @@ const en: Record<Key, string> = {
   'login.hasAccount': 'Already have an account?',
   'login.toRegister': 'CREATE ACCOUNT',
   'login.toLogin': 'SIGN IN',
+  'auth.loginTitle': 'Welcome back',
+  'auth.registerTitle': 'Create your account',
+  'auth.loginSub': 'Sign in to see your vehicles and diagnoses.',
+  'auth.registerSub': 'Start diagnosing your vehicle in minutes.',
+  'auth.loginAction': 'Sign in',
+  'auth.registerAction': 'Create account',
+  'auth.showPassword': 'Show password',
+  'auth.hidePassword': 'Hide password',
 };
 
 const DICTS: Record<Lang, Record<Key, string>> = { es, en };
