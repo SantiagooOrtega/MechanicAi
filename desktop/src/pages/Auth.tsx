@@ -11,12 +11,10 @@ import MercuryLogin from '../components/ui/mercury-login';
 
 type Mode = 'login' | 'register';
 
-// SOLO PARA PRUEBAS LOCALES: fotogramas del video promocional del Ferrari Amalfi (demo de terceros, sin licencia).
-// Antes de publicar la app, reemplázalos por un video propio o con licencia.
+// Fotogramas del video propio (public/frames/0001.jpg ...), generado con IA y extraído con ffmpeg.
 const HERO_FRAMES = {
-  count: 300,
-  url: (i: number) =>
-    `https://raw.githubusercontent.com/duthiljean/ferrari-hero-demo/main/${String(i + 1).padStart(4, '0')}.webp`,
+  count: 105,
+  url: (i: number) => `${import.meta.env.BASE_URL}frames/${String(i + 1).padStart(4, '0')}.jpg`,
 };
 
 export default function Auth() {
