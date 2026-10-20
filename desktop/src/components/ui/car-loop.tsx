@@ -140,5 +140,5 @@ export function CarLoop({ frames, paused = false }: { frames: CarLoopFrames; pau
     return () => cancelAnimationFrame(raf)
   }, [frames, ok, aspect, reduced, paused])
 
-  return <canvas ref={canvasRef} aria-hidden className="car-loop" style={{ aspectRatio: String(aspect) }} />
+  return <canvas ref={canvasRef} aria-hidden className="car-loop" style={{ aspectRatio: String(aspect), ['--ar' as string]: aspect }} />
 }

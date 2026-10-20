@@ -1,13 +1,15 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useAuth } from '../auth';
 import { useT } from '../i18n';
 import { SWITCH_USER_FLAG } from '../components/Layout';
 import { LogoMark } from '../components/Logo';
 import { CarLoop } from '../components/ui/car-loop';
+import MercuryLogin from '../components/ui/mercury-login';
 
 type Mode = 'login' | 'register';
+type Origin = { x: number; y: number };
 
 // Fotogramas del video propio (public/frames/0001.jpg ...), generado con IA, interpolado a 60 fps y ampliado con ffmpeg.
 const HERO_FRAMES = {
@@ -16,25 +18,42 @@ const HERO_FRAMES = {
 };
 
 const EASE = [0.2, 0.7, 0.2, 1] as const;
+const WIPE = [0.65, 0, 0.35, 1] as const;
+
+const circle = (o: Origin, r: string) => `circle(${r} at ${o.x}px ${o.y}px)`;
 
 export default function Auth() {
   const { login, register } = useAuth();
   const { t, lang, setLang } = useT();
-  const [mode, setMode] = useState<Mode>('login');
+  const [panel, setPanel] = useState<Mode | null>(() => {
+    try {
+      if (sessionStorage.getItem(SWITCH_USER_FLAG)) {
+        sessionStorage.removeItem(SWITCH_USER_FLAG);
+        return 'login';
+      }
+    } catch { /* ignorar */ }
+    return null;
+  });
+  const [origin, setOrigin] = useState<Origin>(() => ({ x: window.innerWidth / 2, y: window.innerHeight * 0.8 }));
   const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // "Cambiar de usuario" llega aquí con el acceso ya abierto: solo se limpia la marca
   useEffect(() => {
-    try { sessionStorage.removeItem(SWITCH_USER_FLAG); } catch { /* ignorar */ }
-  }, []);
+    if (!panel) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setPanel(null);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [panel]);
 
-  const switchMode = (next: Mode) => {
-    if (next === mode) return;
+  // el login se abre con un círculo que nace en el botón pulsado
+  const open = (mode: Mode, e?: React.MouseEvent<HTMLElement>) => {
+    if (e) {
+      const r = e.currentTarget.getBoundingClientRect();
+      setOrigin({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    }
     setError(null);
-    setMode(next);
+    setPanel(mode);
   };
 
   async function submit(e: FormEvent) {
@@ -42,7 +61,7 @@ export default function Auth() {
     setError(null);
     setBusy(true);
     try {
-      if (mode === 'login') await login(form.email, form.password);
+      if (panel === 'login') await login(form.email, form.password);
       else await register(form.name, form.email, form.password);
     } catch (err) {
       setError((err as Error).message);
@@ -51,115 +70,69 @@ export default function Auth() {
     }
   }
 
-  const set = (k: 'name' | 'email' | 'password') => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
-
   const [headline, accent] = t('land.headline').split('\n');
+  const closed = circle(origin, '0px');
+  const opened = circle(origin, '170vmax');
 
   return (
-    <div className="auth">
-      <section className="auth-visual" aria-label="Mechanic IA">
-        <div className="auth-visual-bg" aria-hidden />
-        <div className="auth-brand">
+    <div className="welcome">
+      <div className="welcome-bg" aria-hidden />
+
+      <motion.header className="welcome-bar" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: EASE }}>
+        <div className="welcome-brand">
           <LogoMark size={36} />
           <span>Mechanic<em>IA</em></span>
         </div>
-
-        <motion.div className="auth-stage" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, ease: EASE }}>
-          <CarLoop frames={HERO_FRAMES} />
-        </motion.div>
-
-        <motion.div className="auth-copy" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.3, ease: EASE }}>
-          <p className="auth-eyebrow">{t('land.eyebrow')}</p>
-          <h1>
-            {headline}
-            <br />
-            <em>{accent}</em>
-          </h1>
-        </motion.div>
-      </section>
-
-      <section className="auth-panel">
-        <div className="auth-lang" role="group" aria-label="Language">
+        <div className="welcome-lang" role="group" aria-label="Language">
           {(['es', 'en'] as const).map((l) => (
             <button key={l} className={lang === l ? 'on' : ''} onClick={() => setLang(l)}>{l.toUpperCase()}</button>
           ))}
         </div>
+      </motion.header>
 
-        <motion.div className="auth-card" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1, ease: EASE }}>
-          <div className="auth-tabs" role="tablist">
-            {(['login', 'register'] as const).map((m) => (
-              <button key={m} role="tab" aria-selected={mode === m} className={mode === m ? 'on' : ''} onClick={() => switchMode(m)}>
-                {mode === m && <motion.span layoutId="auth-tab" className="auth-tab-pill" transition={{ type: 'spring', stiffness: 420, damping: 36 }} />}
-                <span>{t(m === 'login' ? 'land.signIn' : 'land.create')}</span>
-              </button>
-            ))}
-          </div>
+      <motion.div className="welcome-stage" initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: panel ? 1.06 : 1 }} transition={{ duration: panel ? 0.8 : 1, ease: EASE }}>
+        <CarLoop frames={HERO_FRAMES} paused={panel !== null} />
+      </motion.div>
 
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div key={mode} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.18 }}>
-              <h2>{t(mode === 'login' ? 'auth.loginTitle' : 'auth.registerTitle')}</h2>
-              <p className="auth-sub">{t(mode === 'login' ? 'auth.loginSub' : 'auth.registerSub')}</p>
+      <motion.div className="welcome-copy" initial={{ opacity: 0, y: 22 }} animate={{ opacity: panel ? 0 : 1, y: panel ? 10 : 0 }}
+        transition={{ duration: panel ? 0.35 : 0.7, delay: panel ? 0 : 0.3, ease: EASE }}>
+        <p className="welcome-eyebrow">{t('land.eyebrow')}</p>
+        <h1>
+          {headline} <em>{accent}</em>
+        </h1>
+        <div className="welcome-actions">
+          <button className="btn btn-primary" onClick={(e) => open('login', e)}>
+            {t('land.signIn')} <ArrowRight size={18} />
+          </button>
+          <button className="btn" onClick={(e) => open('register', e)}>{t('land.create')}</button>
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {panel && (
+          <>
+            <motion.div key="red" className="reveal reveal-red" aria-hidden
+              initial={{ clipPath: closed }} animate={{ clipPath: opened }} exit={{ clipPath: closed }}
+              transition={{ duration: 0.8, ease: WIPE }} />
+            <motion.div key="login" className="reveal"
+              initial={{ clipPath: closed }} animate={{ clipPath: opened }} exit={{ clipPath: closed }}
+              transition={{ duration: 0.8, delay: 0.14, ease: WIPE }}>
+              <MercuryLogin
+                mode={panel}
+                values={form}
+                onChange={(k, v) => setForm((f) => ({ ...f, [k]: v }))}
+                onSubmit={submit}
+                onSwitchMode={() => open(panel === 'login' ? 'register' : 'login')}
+                onClose={() => setPanel(null)}
+                busy={busy}
+                error={error}
+              />
             </motion.div>
-          </AnimatePresence>
-
-          <form onSubmit={submit} className="auth-form" noValidate>
-            <AnimatePresence initial={false}>
-              {mode === 'register' && (
-                <motion.div key="name" className="field" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }}>
-                  <label htmlFor="auth-name">{t('login.name')}</label>
-                  <input id="auth-name" className="input" autoComplete="name" required value={form.name}
-                    onChange={set('name')} placeholder={t('login.namePlaceholder')} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="field">
-              <label htmlFor="auth-email">{t('login.email')}</label>
-              <input id="auth-email" className="input" type="email" autoComplete="email" required value={form.email}
-                onChange={set('email')} placeholder="tu@correo.com" />
-            </div>
-
-            <div className="field">
-              <label htmlFor="auth-password">{t('login.password')}</label>
-              <div className="auth-pass">
-                <input id="auth-password" className="input" type={showPassword ? 'text' : 'password'}
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'} required value={form.password}
-                  onChange={set('password')} placeholder={mode === 'register' ? t('login.passwordPlaceholder') : '••••••••'} />
-                <button type="button" className="auth-eye" onClick={() => setShowPassword((v) => !v)}
-                  aria-label={t(showPassword ? 'auth.hidePassword' : 'auth.showPassword')}>
-                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                </button>
-              </div>
-            </div>
-
-            <AnimatePresence initial={false}>
-              {error && (
-                <motion.div key="err" className="auth-error" role="alert" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
-                  {error}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <button className="btn btn-primary btn-lg auth-submit" type="submit" disabled={busy}>
-              {busy ? t('login.wait') : (<>{t(mode === 'login' ? 'auth.loginAction' : 'auth.registerAction')} <ArrowRight size={18} /></>)}
-            </button>
-          </form>
-
-          <p className="auth-switch">
-            {t(mode === 'login' ? 'login.noAccount' : 'login.hasAccount')}{' '}
-            <button type="button" onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}>
-              {t(mode === 'login' ? 'land.create' : 'land.signIn')}
-            </button>
-          </p>
-        </motion.div>
-      </section>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
