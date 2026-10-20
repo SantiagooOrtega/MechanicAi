@@ -10,10 +10,11 @@ gsap.registerPlugin(ScrollTrigger)
  * pero en lugar de una secuencia de fotogramas recibe una función que dibuja en canvas.
  */
 
-const PIN_VH_MULTIPLE = 3.2
+const PIN_VH_MULTIPLE = 4.6
+const CARD_SVH = 0.66 // alto de la tarjeta respecto a la pantalla
 const IMMERSE_OVERFILL = 1.04
 const ENTRY_DELAY = 0.2
-const START_SCALE_DESKTOP = 0.6
+const START_SCALE_DESKTOP = 0.78
 const START_SCALE_MOBILE = 0.82
 const RENDER_SCALE = 1.7 // el canvas se dibuja más grande porque la tarjeta se amplía al hacer scroll
 
@@ -134,6 +135,8 @@ export function HeroScrub({ titleTop, titleBottom, frames, draw, scroller, aspec
           if (want + d < frameCount && loaded(want + d)) { idx = want + d; break }
         }
         if (idx === -1 || idx === lastDrawnRef.current) return
+        ctx.imageSmoothingEnabled = true
+        ctx.imageSmoothingQuality = 'high'
         ctx.drawImage(imagesRef.current[idx], 0, 0, canvas.width, canvas.height)
         lastDrawnRef.current = idx
         return
@@ -188,8 +191,8 @@ export function HeroScrub({ titleTop, titleBottom, frames, draw, scroller, aspec
       const immerseScale = () => {
         const vw = window.innerWidth
         const vh = window.innerHeight
-        const baseW = Math.min(vw * 0.96, vh * 0.56 * aspect)
-        const baseH = Math.min(vh * 0.56, (vw * 0.96) / aspect)
+        const baseW = Math.min(vw * 0.98, vh * CARD_SVH * aspect)
+        const baseH = Math.min(vh * CARD_SVH, (vw * 0.98) / aspect)
         if (baseW <= 0 || baseH <= 0) return 1.5
         return Math.max(vw / baseW, vh / baseH) * IMMERSE_OVERFILL
       }
@@ -202,7 +205,7 @@ export function HeroScrub({ titleTop, titleBottom, frames, draw, scroller, aspec
           scroller: scroller ?? window,
           start: 'top top',
           end: 'bottom bottom',
-          scrub: 0.4,
+          scrub: 0.9,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
             progressRef.current = gsap.utils.clamp(0, 1, (self.progress - 0.15) / 0.63)
@@ -238,7 +241,7 @@ export function HeroScrub({ titleTop, titleBottom, frames, draw, scroller, aspec
         <div ref={bgRef} aria-hidden className="hs-bg" />
         <div className="hs-titles">
           <h2 ref={topRef} aria-hidden className="hs-title">{titleTop}</h2>
-          <div ref={cardRef} className="hs-card" style={{ width: `min(96vw, calc(56svh * ${aspect}))`, aspectRatio: String(aspect) }}>
+          <div ref={cardRef} className="hs-card" style={{ width: `min(98vw, calc(${CARD_SVH * 100}svh * ${aspect}))`, aspectRatio: String(aspect) }}>
             <canvas ref={canvasRef} aria-hidden className="hs-canvas" />
             <div aria-hidden className="hs-card-shade" />
           </div>

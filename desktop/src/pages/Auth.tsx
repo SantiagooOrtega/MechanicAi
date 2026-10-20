@@ -11,9 +11,9 @@ import MercuryLogin from '../components/ui/mercury-login';
 
 type Mode = 'login' | 'register';
 
-// Fotogramas del video propio (public/frames/0001.jpg ...), generado con IA y extraído con ffmpeg.
+// Fotogramas del video propio (public/frames/0001.jpg ...), generado con IA, interpolado a 60 fps y ampliado con ffmpeg.
 const HERO_FRAMES = {
-  count: 105,
+  count: 256,
   url: (i: number) => `${import.meta.env.BASE_URL}frames/${String(i + 1).padStart(4, '0')}.jpg`,
 };
 
