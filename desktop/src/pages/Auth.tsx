@@ -8,6 +8,7 @@ import { LogoMark } from '../components/Logo';
 import { HeroScrub } from '../components/ui/hero-scrub';
 import { drawExplodedCar } from '../components/ui/car-exploded';
 import MercuryLogin from '../components/ui/mercury-login';
+import { ScrollGallery, type ScrollGallerySlide } from '../components/ui/scroll-gallery';
 
 type Mode = 'login' | 'register';
 
@@ -15,6 +16,25 @@ type Mode = 'login' | 'register';
 const HERO_FRAMES = {
   count: 256,
   url: (i: number) => `${import.meta.env.BASE_URL}frames/${String(i + 1).padStart(4, '0')}.jpg`,
+};
+
+// Apartados de la app, cada uno sobre una foto de taller (public/garage, fotos de Unsplash)
+const garage = (f: string) => `${import.meta.env.BASE_URL}garage/${f}`;
+const FEATURES: Record<'es' | 'en', ScrollGallerySlide[]> = {
+  es: [
+    { image: garage('1-diagnostico.jpg'), eyebrow: 'Diagnóstico con IA', title: 'Cuéntale qué le pasa.', description: 'Describe el ruido, la vibración o el olor con tus palabras y la IA te da las causas más probables.' },
+    { image: garage('2-obd.jpg'), eyebrow: 'Códigos OBD-II', title: 'Tu escáner, traducido.', description: 'Pega los códigos P0300, P0420… y entiende qué significan sin buscar en foros.' },
+    { image: garage('3-vehiculos.jpg'), eyebrow: 'Mis vehículos', title: 'Todo tu garaje en un lugar.', description: 'Registra cada carro con su marca, modelo y kilometraje, y guarda su historial de diagnósticos.' },
+    { image: garage('4-mantenimiento.jpg'), eyebrow: 'Mantenimiento', title: 'Nunca más un cambio de aceite tarde.', description: 'Programa servicios y recibe recordatorios antes de que llegue la fecha o el kilometraje.' },
+    { image: garage('5-taller.jpg'), eyebrow: 'Urgencia y pasos', title: 'Llega al taller sabiendo.', description: 'Cada diagnóstico te dice qué tan urgente es y qué revisar primero, para que nadie te cobre de más.' },
+  ],
+  en: [
+    { image: garage('1-diagnostico.jpg'), eyebrow: 'AI diagnosis', title: 'Tell it what is wrong.', description: 'Describe the noise, vibration or smell in your own words and the AI gives you the most likely causes.' },
+    { image: garage('2-obd.jpg'), eyebrow: 'OBD-II codes', title: 'Your scanner, translated.', description: 'Paste codes like P0300 or P0420 and understand what they mean without digging through forums.' },
+    { image: garage('3-vehiculos.jpg'), eyebrow: 'My vehicles', title: 'Your whole garage in one place.', description: 'Register each car with its make, model and mileage, and keep its diagnosis history.' },
+    { image: garage('4-mantenimiento.jpg'), eyebrow: 'Maintenance', title: 'Never late for an oil change again.', description: 'Schedule services and get reminders before the date or mileage arrives.' },
+    { image: garage('5-taller.jpg'), eyebrow: 'Urgency and steps', title: 'Walk into the shop informed.', description: 'Every diagnosis tells you how urgent it is and what to check first, so nobody overcharges you.' },
+  ],
 };
 
 export default function Auth() {
@@ -108,6 +128,8 @@ export default function Auth() {
             scrollHint={t('land.scroll')}
           />
         )}
+
+        {scroller && <ScrollGallery scroller={scroller} slides={FEATURES[lang]} />}
 
         <section className="land-cta" ref={setCtaEl}>
           <p className="land-eyebrow">{t('land.ctaEyebrow')}</p>
