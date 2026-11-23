@@ -364,12 +364,27 @@ a.list-item:hover { transform: translateX(3px); }
 .land-cta {
   min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
   padding: 80px 32px; color: #f5f5f5;
-  background: radial-gradient(ellipse at 50% 100%, rgba(239, 68, 68, 0.18), transparent 60%), #0a0a0b;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 105%, rgba(229, 72, 77, 0.22), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 50% 0%, rgba(255, 255, 255, 0.035), transparent 70%),
+    #0b0b0d;
 }
+.land-auth { display: flex; align-items: center; gap: 10px; transition: opacity 0.3s var(--ease), transform 0.3s var(--ease); }
+.land-auth.hidden { opacity: 0; transform: translateY(-6px); pointer-events: none; }
+.land-primary {
+  background: linear-gradient(180deg, #ef5a5f, #d93b41); border-color: rgba(255, 255, 255, 0.08); color: #fff;
+  box-shadow: 0 8px 24px -8px rgba(229, 72, 77, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.land-primary:hover { background: linear-gradient(180deg, #f26a6f, #e0464c); }
+.land-secondary {
+  background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.18); color: #f5f5f5;
+  backdrop-filter: blur(8px);
+}
+.land-secondary:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3); }
 .land-eyebrow { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 20px; }
 .land-cta h1 { font-size: clamp(2.6rem, 6.4vw, 5.6rem); font-weight: 700; line-height: 0.98; letter-spacing: -0.04em; margin-bottom: 22px; }
-.land-cta h1 em { font-style: normal; color: var(--accent); }
-.land-body { max-width: 520px; color: #a1a1aa; font-size: 16px; margin-bottom: 34px; }
+.land-cta h1 em { font-style: normal; background: linear-gradient(180deg, #ff6b6f, #d93b41); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.land-body { max-width: 540px; color: #b4b4bc; font-size: 16px; margin-bottom: 34px; }
 .land-buttons { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
 
 /* En Electron las zonas `drag` capturan el clic aunque haya algo encima:
@@ -388,7 +403,7 @@ a.list-item:hover { transform: translateX(3px); }
     radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.7) 100%),
     #0a0a0b;
 }
-.hs-titles { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 100%; padding: 74px 0 56px; }
+.hs-titles { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 100%; padding: 74px 0 128px; }
 .hs-title {
   font-family: var(--font-display); font-weight: 700; text-transform: uppercase; color: #f5f5f5; white-space: nowrap;
   font-size: clamp(3rem, min(12vw, 10.5svh), 11rem); line-height: 0.85; letter-spacing: -0.04em;
@@ -405,7 +420,7 @@ a.list-item:hover { transform: translateX(3px); }
 .hs-card-shade { display: none; }
 .hs-hint {
   position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 12; display: flex; flex-direction: column; align-items: center; gap: 8px;
-  font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-2);
+  font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #8b8b94;
 }
 .hs-hint span { width: 1px; height: 28px; background: linear-gradient(var(--accent), transparent); animation: hint 1.8s ease-in-out infinite; transform-origin: top; }
 @keyframes hint { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }

@@ -33,6 +33,16 @@ export default function Auth() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [ctaEl, setCtaEl] = useState<HTMLElement | null>(null);
+  const [ctaVisible, setCtaVisible] = useState(false);
+
+  // Cuando la sección final (con sus propios botones) está en pantalla, se ocultan los de la barra
+  useEffect(() => {
+    if (!ctaEl || !scroller) return;
+    const io = new IntersectionObserver(([e]) => setCtaVisible(e.isIntersecting), { root: scroller, threshold: 0.35 });
+    io.observe(ctaEl);
+    return () => io.disconnect();
+  }, [ctaEl, scroller]);
 
   useEffect(() => {
     if (!panel) return;
@@ -81,8 +91,10 @@ export default function Auth() {
                 <button key={l} className={lang === l ? 'on' : ''} onClick={() => setLang(l)}>{l.toUpperCase()}</button>
               ))}
             </div>
-            <button className="btn btn-ghost" onClick={() => open('login')}>{t('land.signIn')}</button>
-            <button className="btn btn-primary" onClick={() => open('register')}>{t('land.create')}</button>
+            <div className={`land-auth${ctaVisible ? ' hidden' : ''}`} aria-hidden={ctaVisible}>
+              <button className="btn btn-ghost" tabIndex={ctaVisible ? -1 : 0} onClick={() => open('login')}>{t('land.signIn')}</button>
+              <button className="btn btn-primary land-primary" tabIndex={ctaVisible ? -1 : 0} onClick={() => open('register')}>{t('land.create')}</button>
+            </div>
           </div>
         </header>
 
@@ -97,7 +109,7 @@ export default function Auth() {
           />
         )}
 
-        <section className="land-cta">
+        <section className="land-cta" ref={setCtaEl}>
           <p className="land-eyebrow">{t('land.ctaEyebrow')}</p>
           <h1>
             {headlineLines[0]}
@@ -106,10 +118,10 @@ export default function Auth() {
           </h1>
           <p className="land-body">{t('land.body')}</p>
           <div className="land-buttons">
-            <button className="btn btn-primary btn-lg" onClick={() => open('register')}>
+            <button className="btn btn-primary btn-lg land-primary" onClick={() => open('register')}>
               {t('land.create')} <ArrowRight size={18} />
             </button>
-            <button className="btn btn-lg" onClick={() => open('login')}>{t('land.haveAccount')}</button>
+            <button className="btn btn-lg land-secondary" onClick={() => open('login')}>{t('land.haveAccount')}</button>
           </div>
         </section>
       </div>
