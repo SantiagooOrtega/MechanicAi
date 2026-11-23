@@ -358,7 +358,7 @@ a.list-item:hover { transform: translateX(3px); }
 .land-brand em { font-style: normal; color: #ef4444; }
 .land-actions { display: flex; align-items: center; gap: 10px; }
 .land-actions .btn-ghost { color: #d4d4d8; }
-.land-lang { display: flex; padding: 3px; gap: 2px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 999px; margin-right: 6px; background: rgba(255, 255, 255, 0.04); }
+.land-lang { display: flex; padding: 3px; gap: 2px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 999px; background: rgba(255, 255, 255, 0.04); }
 .land-lang button { border: none; background: transparent; color: #a1a1aa; padding: 5px 11px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; }
 .land-lang button.on { background: rgba(255, 255, 255, 0.13); color: #f5f5f5; }
 .land-cta {
@@ -369,8 +369,12 @@ a.list-item:hover { transform: translateX(3px); }
     radial-gradient(ellipse 50% 40% at 50% 0%, rgba(255, 255, 255, 0.035), transparent 70%),
     #0b0b0d;
 }
-.land-auth { display: flex; align-items: center; gap: 10px; transition: opacity 0.3s var(--ease), transform 0.3s var(--ease); }
-.land-auth.hidden { opacity: 0; transform: translateY(-6px); pointer-events: none; }
+.land-auth {
+  display: flex; align-items: center; gap: 10px; max-width: 440px; overflow: hidden; padding: 12px; margin: -12px -12px -12px -2px;
+  transition: opacity 0.25s var(--ease), max-width 0.45s var(--ease), margin 0.45s var(--ease);
+}
+/* al ocultarse también suelta su espacio: ES/EN se desliza a la esquina derecha */
+.land-auth.hidden { opacity: 0; max-width: 0; padding: 0; margin: 0 0 0 -10px; pointer-events: none; }
 .land-primary {
   background: linear-gradient(180deg, #ef5a5f, #d93b41); border-color: rgba(255, 255, 255, 0.08); color: #fff;
   box-shadow: 0 8px 24px -8px rgba(229, 72, 77, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.18);
