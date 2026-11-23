@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useAuth } from '../auth';
+import { GarageBackdrop } from './ui/garage-backdrop';
 import CollapsibleSidebar, { type ThemeMode } from './ui/collapsible-sidebar';
 
 function useTheme() {
@@ -22,6 +23,7 @@ export default function Layout() {
   const [theme, setTheme] = useTheme();
   const { pathname } = useLocation();
   const mainRef = useRef<HTMLElement>(null);
+  const [mainEl, setMainEl] = useState<HTMLElement | null>(null);
 
   useEffect(() => { mainRef.current?.scrollTo({ top: 0 }); }, [pathname]);
 
@@ -36,7 +38,8 @@ export default function Layout() {
       {user && (
         <CollapsibleSidebar user={user} theme={theme} onThemeChange={setTheme} onLogout={logout} onSwitchUser={switchUser} />
       )}
-      <main className="main" ref={mainRef}>
+      <GarageBackdrop pathname={pathname} scroller={mainEl} />
+      <main className="main" ref={(el) => { mainRef.current = el; setMainEl(el); }}>
         <motion.div key={pathname} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.32, ease: [0.2, 0.7, 0.2, 1] }}>
           <Outlet />
         </motion.div>

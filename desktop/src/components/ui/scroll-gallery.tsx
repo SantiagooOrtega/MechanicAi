@@ -36,7 +36,7 @@ export interface ScrollGalleryProps {
   className?: string;
 }
 
-function createStripBounds(stripsCount: number) {
+export function createStripBounds(stripsCount: number) {
   return Array.from({ length: stripsCount }, (_, j) => {
     const step = 100 / stripsCount;
     const posFromBottom = stripsCount - j - 1;
@@ -44,7 +44,7 @@ function createStripBounds(stripsCount: number) {
   });
 }
 
-function buildStripMask(bounds: ReturnType<typeof createStripBounds>, progress: number, speed: number) {
+export function buildStripMask(bounds: ReturnType<typeof createStripBounds>, progress: number, speed: number) {
   const intervals: { top: number; bottom: number }[] = [];
   for (const b of bounds) {
     const adj = Math.max(0, Math.min(1, (progress - b.delay) * speed));
