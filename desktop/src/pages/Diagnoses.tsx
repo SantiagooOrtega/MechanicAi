@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Item, Stagger } from '../components/motion';
 import { CheckCircle2, ClipboardList, Plus } from 'lucide-react';
 import { api } from '../api';
@@ -13,7 +13,9 @@ type Filter = 'all' | 'open' | 'resolved';
 
 export default function Diagnoses() {
   const { t } = useT();
-  const [filter, setFilter] = useState<Filter>('all');
+  const [params] = useSearchParams();
+  // ?status=open desde el panel abre el historial ya filtrado
+  const [filter, setFilter] = useState<Filter>(() => (params.get('status') === 'open' || params.get('status') === 'resolved' ? params.get('status') as Filter : 'all'));
   const { data, loading, error } = useAsync(
     () => api.get<{ diagnoses: DiagnosisSummary[] }>(`/diagnoses${filter === 'all' ? '' : `?status=${filter}`}`),
     [filter]

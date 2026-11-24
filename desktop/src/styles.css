@@ -591,7 +591,7 @@ a.list-item:hover { transform: translateX(3px); }
 .garage-add:hover .garage-add-icon { transform: rotate(90deg) scale(1.08); background: var(--accent-solid); color: #fff; }
 
 /* Panel: indicadores compactos (ícono al lado del número) */
-.dash-hero ~ .grid-4 .stat { flex-direction: row; align-items: center; gap: 14px; padding: 14px 16px; }
+.dash-hero ~ .grid-4 .stat, .dash-hero ~ .grid-4 .stat-link { flex-direction: row; align-items: center; gap: 14px; padding: 14px 16px; }
 .dash-hero ~ .grid-4 .stat-icon { width: 42px; height: 42px; flex-shrink: 0; }
 .dash-hero ~ .grid-4 .stat-body { display: flex; flex-direction: column; gap: 3px; }
 .dash-hero ~ .grid-4 .stat-value { font-size: 24px; }
@@ -603,3 +603,9 @@ a.list-item:hover { transform: translateX(3px); }
 .garage-actions { display: flex; align-items: center; gap: 4px; padding: 12px 14px 14px; margin-top: auto; }
 .garage-cta:hover { background: var(--accent-solid); color: #fff; }
 button.garage-add { font: inherit; cursor: pointer; }
+
+/* Panel: cada indicador es un acceso a su sección */
+.stat-link { text-decoration: none; color: var(--text); height: 100%; }
+.stat-link .stat-body { flex: 1; }
+.stat-arrow { color: var(--text-3); transition: transform 0.2s var(--ease), color 0.2s; }
+.stat-link:hover .stat-arrow { color: var(--accent); transform: translateX(3px); }

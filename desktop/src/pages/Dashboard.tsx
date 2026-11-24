@@ -21,10 +21,10 @@ export default function Dashboard() {
   const { totals, recent, upcoming, spending } = data;
   const max = Math.max(...spending.map((s) => s.total), 1);
   const stats = [
-    { label: t('dash.stat.vehicles'), value: totals.vehicles, icon: Car, tone: '' },
-    { label: t('dash.stat.diagnoses'), value: totals.diagnoses, icon: ClipboardList, tone: 'info' },
-    { label: t('dash.stat.open'), value: totals.open, icon: FolderOpen, tone: 'ok' },
-    { label: t('dash.stat.urgent'), value: totals.urgent, icon: AlertOctagon, tone: 'danger' },
+    { label: t('dash.stat.vehicles'), value: totals.vehicles, icon: Car, tone: '', to: '/vehicles' },
+    { label: t('dash.stat.diagnoses'), value: totals.diagnoses, icon: ClipboardList, tone: 'info', to: '/diagnoses' },
+    { label: t('dash.stat.open'), value: totals.open, icon: FolderOpen, tone: 'ok', to: '/diagnoses?status=open' },
+    { label: t('dash.stat.urgent'), value: totals.urgent, icon: AlertOctagon, tone: 'danger', to: '/diagnoses?status=open' },
   ];
 
   return (
@@ -57,14 +57,15 @@ export default function Dashboard() {
       <GettingStarted vehicles={totals.vehicles} diagnoses={totals.diagnoses} maintenance={totals.maintenance} />
 
       <Stagger className="grid grid-4" style={{ marginBottom: 18 }}>
-        {stats.map(({ label, value, icon: Icon, tone }) => (
-          <Item className="card stat" key={label}>
+        {stats.map(({ label, value, icon: Icon, tone, to }) => (
+          <Item key={label}><Link to={to} className="card stat stat-link">
             <div className={`stat-icon ${tone}`}><Icon size={20} /></div>
             <div className="stat-body">
               <div className="stat-value"><Counter value={value} format={formatNumber} /></div>
               <div className="stat-label">{label}</div>
             </div>
-          </Item>
+            <ArrowRight size={16} className="stat-arrow" />
+          </Link></Item>
         ))}
       </Stagger>
 
