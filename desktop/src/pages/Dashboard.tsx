@@ -63,8 +63,10 @@ export default function Dashboard() {
         {stats.map(({ label, value, icon: Icon, tone }) => (
           <Item className="card stat" key={label}>
             <div className={`stat-icon ${tone}`}><Icon size={20} /></div>
-            <div className="stat-value"><Counter value={value} format={formatNumber} /></div>
-            <div className="stat-label">{label}</div>
+            <div className="stat-body">
+              <div className="stat-value"><Counter value={value} format={formatNumber} /></div>
+              <div className="stat-label">{label}</div>
+            </div>
           </Item>
         ))}
       </Stagger>

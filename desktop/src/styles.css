@@ -590,3 +590,10 @@ a.list-item:hover { transform: translateX(3px); }
 .garage-add span:last-child { font-size: 12.5px; color: var(--text-2); }
 .garage-add-icon { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); margin-bottom: 6px; transition: transform 0.3s var(--ease); }
 .garage-add:hover .garage-add-icon { transform: rotate(90deg) scale(1.08); background: var(--accent-solid); color: #fff; }
+
+/* Panel: indicadores compactos (ícono al lado del número) */
+.dash-hero ~ .grid-4 .stat { flex-direction: row; align-items: center; gap: 14px; padding: 14px 16px; }
+.dash-hero ~ .grid-4 .stat-icon { width: 42px; height: 42px; flex-shrink: 0; }
+.dash-hero ~ .grid-4 .stat-body { display: flex; flex-direction: column; gap: 3px; }
+.dash-hero ~ .grid-4 .stat-value { font-size: 24px; }
+.dash-hero ~ .grid-4 .stat-label { font-size: 12.5px; }
