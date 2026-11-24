@@ -6,6 +6,7 @@ import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Diagnoses from './pages/Diagnoses';
 import DiagnosisDetail from './pages/DiagnosisDetail';
+import Settings from './pages/Settings';
 import Maintenance from './pages/Maintenance';
 import NewDiagnosis from './pages/NewDiagnosis';
 import Vehicles from './pages/Vehicles';
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="diagnoses/:id" element={<DiagnosisDetail />} />
           <Route path="vehicles" element={<Vehicles />} />
           <Route path="maintenance" element={<Maintenance />} />
+          <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

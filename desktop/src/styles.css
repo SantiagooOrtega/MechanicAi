@@ -615,3 +615,19 @@ button.garage-add { font: inherit; cursor: pointer; }
 .pending-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 34px 12px; text-align: center; color: var(--ok); }
 .pending-empty strong { color: var(--text); font-size: 15px; }
 .pending-empty span { color: var(--text-2); font-size: 13px; }
+
+/* ---------- Configuración: perfil y avatares ---------- */
+.profile-preview { display: flex; align-items: center; gap: 20px; }
+.profile-preview h2 { font-size: 24px; margin: 2px 0; }
+.avatar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 16px; }
+.avatar-pick {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 6px;
+  background: transparent; border: none; border-radius: var(--radius); cursor: pointer; color: var(--text-2); font-size: 12.5px; font-weight: 600;
+  transition: transform 0.2s var(--ease), color 0.2s;
+}
+.avatar-pick .avatar { transition: box-shadow 0.2s, transform 0.2s var(--ease); }
+.avatar-pick:hover { transform: translateY(-3px); color: var(--text); }
+.avatar-pick:hover .avatar { transform: scale(1.05); }
+.avatar-pick.on { color: var(--text); }
+.avatar-pick.on .avatar { box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--accent); }
+.avatar-check { position: absolute; top: 6px; right: 14px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-solid); color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }

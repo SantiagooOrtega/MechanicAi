@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import * as Dropdown from '@radix-ui/react-dropdown-menu';
 import {
   ArrowLeftRight, Car, Check, ChevronLeft, ChevronRight, ChevronsUpDown,
-  LayoutDashboard, LogOut, Stethoscope, Wrench, type LucideIcon,
+  LayoutDashboard, LogOut, Settings2, Stethoscope, Wrench, type LucideIcon,
 } from 'lucide-react';
 import { useT, type Key, type Lang } from '../../i18n';
 import { LogoMark } from '../Logo';
@@ -42,6 +42,7 @@ function Item({ to, icon: Icon, label, end, child, tip }: { to: string; icon?: L
 
 export default function CollapsibleSidebar({ user, theme, onThemeChange, onLogout, onSwitchUser }: SidebarProps) {
   const { t, lang, setLang } = useT();
+  const navigate = useNavigate();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(() => {
     try { return localStorage.getItem(STORAGE_KEY) !== 'closed'; } catch { return true; }
@@ -142,6 +143,9 @@ export default function CollapsibleSidebar({ user, theme, onThemeChange, onLogou
               </Dropdown.RadioGroup>
               <Dropdown.Separator className="dd-sep" />
 
+              <Dropdown.Item className="dd-item" onSelect={() => navigate('/settings')}>
+                <Settings2 size={16} /><span>{t('user.settings')}</span>
+              </Dropdown.Item>
               <Dropdown.Item className="dd-item" onSelect={onSwitchUser}>
                 <ArrowLeftRight size={16} /><span>{t('user.switch')}</span>
               </Dropdown.Item>
