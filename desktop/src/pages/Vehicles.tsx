@@ -110,25 +110,32 @@ export default function Vehicles() {
         <div className="card"><Empty icon={Car} title={t('veh.emptyTitle')} text={t('veh.emptyText')}
           action={<button className="btn btn-primary" onClick={() => open()}><Plus size={16} />{t('veh.add')}</button>} /></div>
       ) : (
-        <Stagger className="grid grid-3">
+        <Stagger className="garage-grid">
           {vehicles.map((v) => (
-            <motion.div className="card vehicle-card" key={v.id} variants={itemVariants} whileHover={{ y: -4 }}>
-              <div className="vehicle-art"><VehiclePhoto brand={v.brand} model={v.model} /></div>
-              <div>
-                <h3>{v.brand} {v.model}</h3>
-                <span className="muted small">{v.year}{v.plate ? ` · ${v.plate}` : ''}</span>
+            <motion.div className="garage-card" key={v.id} variants={itemVariants}>
+              <Link to={`/diagnosis/new?vehicle=${v.id}`} className="garage-photo" aria-label={t('veh.diagnose')}>
+                <VehiclePhoto brand={v.brand} model={v.model} />
+              </Link>
+              <div className="garage-info">
+                <strong>{v.brand} {v.model}</strong>
+                <span>{v.year}{v.plate ? ` · ${v.plate}` : ''}</span>
               </div>
-              <div className="vehicle-meta">
+              <div className="garage-meta">
                 <div><small>{t('veh.mileage')}</small><span>{formatNumber(v.mileage)} km</span></div>
                 <div><small>{t('veh.fuel')}</small><span>{t(`fuel.${v.fuel}`)}</span></div>
               </div>
-              <div className="row">
-                <Link to={`/diagnosis/new?vehicle=${v.id}`} className="btn btn-sm" style={{ flex: 1 }}><Stethoscope size={14} />{t('veh.diagnose')}</Link>
+              <div className="garage-actions">
+                <Link to={`/diagnosis/new?vehicle=${v.id}`} className="garage-cta"><Stethoscope size={15} />{t('veh.diagnose')}</Link>
                 <button className="btn btn-ghost btn-sm btn-icon" onClick={() => open(v)} aria-label={t('veh.edit')}><Pencil size={15} /></button>
                 <button className="btn btn-ghost btn-sm btn-icon btn-danger" onClick={() => remove(v)} aria-label={t('veh.delete')}><Trash2 size={15} /></button>
               </div>
             </motion.div>
           ))}
+          <motion.button type="button" className="garage-card garage-add" variants={itemVariants} onClick={() => open()}>
+            <span className="garage-add-icon"><Plus size={26} /></span>
+            <strong>{t('veh.add')}</strong>
+            <span>{t('veh.addText')}</span>
+          </motion.button>
         </Stagger>
       )}
 
