@@ -6,11 +6,12 @@ const DashboardController = {
   async summary(req, res, next) {
     try {
       const userId = req.user.id;
-      const [vehicles, diagnoses, upcoming, spending] = await Promise.all([
+      const [vehicles, diagnoses, upcoming, spending, maintenance] = await Promise.all([
         VehicleModel.findAllByUser(userId),
         DiagnosisModel.findAllByUser(userId),
         MaintenanceModel.upcoming(userId),
         MaintenanceModel.spendingByMonth(userId),
+        MaintenanceModel.findAllByUser(userId),
       ]);
 
       res.json({
@@ -19,6 +20,7 @@ const DashboardController = {
           diagnoses: diagnoses.length,
           open: diagnoses.filter((d) => d.status === 'open').length,
           urgent: diagnoses.filter((d) => d.status === 'open' && ['high', 'critical'].includes(d.urgency)).length,
+          maintenance: maintenance.length, // para la guía de primeros pasos
         },
         recent: diagnoses.slice(0, 5),
         upcoming,
