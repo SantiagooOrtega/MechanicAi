@@ -64,6 +64,10 @@ const SCHEMA = `
     created_at TIMESTAMPTZ DEFAULT NOW()
   );
 
+  -- Preferencias del usuario: cómo quiere que lo llamemos y su avatar (estilo Netflix)
+  ALTER TABLE mechanicia.users ADD COLUMN IF NOT EXISTS nickname VARCHAR(40);
+  ALTER TABLE mechanicia.users ADD COLUMN IF NOT EXISTS avatar VARCHAR(40);
+
   CREATE INDEX IF NOT EXISTS idx_vehicles_user ON mechanicia.vehicles(user_id);
   CREATE INDEX IF NOT EXISTS idx_diagnoses_user ON mechanicia.diagnoses(user_id, created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_messages_diagnosis ON mechanicia.diagnosis_messages(diagnosis_id, created_at);
