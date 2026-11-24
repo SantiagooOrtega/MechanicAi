@@ -268,6 +268,9 @@ a.list-item:hover { background: var(--surface-2); }
 .vehicle-card { display: flex; flex-direction: column; gap: 16px; transition: border-color 0.2s, transform 0.2s var(--ease); }
 .vehicle-card:hover { border-color: var(--accent-line); transform: translateY(-2px); }
 .vehicle-art { height: 78px; border-radius: 10px; background: linear-gradient(135deg, var(--surface-3), var(--surface-2)); display: grid; place-items: center; color: var(--accent); position: relative; overflow: hidden; }
+.vehicle-art:has(.vehicle-photo) { height: 150px; background: #fff; }
+.vehicle-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vehicle-art:has(.vehicle-photo)::after { display: none; }
 .vehicle-art::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, transparent 0 14px, rgba(255,255,255,0.03) 14px 15px); }
 .vehicle-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .vehicle-meta div small { display: block; color: var(--text-3); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; }
@@ -492,3 +495,13 @@ a.list-item:hover { transform: translateX(3px); }
 .app > .main { position: relative; z-index: 1; background: transparent; }
 /* tarjetas como vidrio sobre la foto */
 .main .card { background: color-mix(in srgb, var(--surface) 78%, transparent); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }
+
+/* ---------- Formulario de vehículo ---------- */
+.input-plate { text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; }
+.input-with-action { display: flex; flex-direction: column; gap: 6px; }
+.link-btn { align-self: flex-start; background: none; border: none; padding: 0; color: var(--accent); font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.link-btn:hover { text-decoration: underline; }
+.vehicle-preview { position: relative; height: 190px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); }
+.vehicle-preview img { width: 100%; height: 100%; object-fit: cover; display: block; animation: rise 0.4s var(--ease); }
+.vehicle-preview-credit { position: absolute; right: 8px; bottom: 8px; font-size: 11px; color: #fff; background: rgba(0, 0, 0, 0.55); padding: 3px 8px; border-radius: 999px; text-decoration: none; }
+.vehicle-preview-empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-3); font-size: 13px; }

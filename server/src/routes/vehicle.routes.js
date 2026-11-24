@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { body, param } = require('express-validator');
+const { body, param, query } = require('express-validator');
 const VehicleController = require('../controllers/vehicle.controller');
 const { authenticate } = require('../middleware/auth.middleware');
 const { validate } = require('../middleware/validate.middleware');
@@ -18,6 +18,15 @@ const vehicleRules = [
 const idRule = param('id').isUUID().withMessage('ID inválido');
 
 router.get('/', VehicleController.list);
+router.get(
+  '/image',
+  [
+    query('brand').trim().isLength({ min: 1, max: 60 }).withMessage('La marca es requerida'),
+    query('model').trim().isLength({ min: 1, max: 60 }).withMessage('El modelo es requerido'),
+  ],
+  validate,
+  VehicleController.image
+);
 router.post('/', vehicleRules, validate, VehicleController.create);
 router.put('/:id', [idRule, ...vehicleRules], validate, VehicleController.update);
 router.delete('/:id', [idRule], validate, VehicleController.remove);

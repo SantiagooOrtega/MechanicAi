@@ -1,8 +1,19 @@
+const { findVehicleImage } = require('../services/vehicle-image.service');
 const VehicleModel = require('../models/vehicle.model');
 
 const notFound = (res) => res.status(404).json({ error: 'Vehículo no encontrado.', code: 'NOT_FOUND' });
 
 const VehicleController = {
+  /** Foto del vehículo buscada en Wikipedia a partir de la marca y el modelo */
+  async image(req, res, next) {
+    try {
+      const image = await findVehicleImage(req.query.brand, req.query.model);
+      res.json({ image });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async list(req, res, next) {
     try {
       res.json({ vehicles: await VehicleModel.findAllByUser(req.user.id) });

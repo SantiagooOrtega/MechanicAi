@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Stagger, itemVariants } from '../components/motion';
@@ -9,6 +9,47 @@ import { useT } from '../i18n';
 import { formatNumber } from '../format';
 import type { Fuel, Vehicle } from '../types';
 import { Empty, ErrorAlert, Field, Modal, PageHead, Spinner } from '../components/ui';
+import { OTHER_BRAND, VEHICLE_BRANDS, VEHICLE_CATALOG, formatPlate } from '../vehicle-catalog';
+
+type VehicleImage = { url: string; title: string; page: string } | null;
+const imageCache = new Map<string, Promise<VehicleImage>>();
+
+/** Foto del vehículo buscada por el servidor (Wikipedia), compartida entre tarjetas y formulario */
+function fetchVehicleImage(brand: string, model: string) {
+  const key = `${brand}|${model}`.toLowerCase();
+  if (!imageCache.has(key)) {
+    const qs = new URLSearchParams({ brand, model }).toString();
+    const p = api.get<{ image: VehicleImage }>(`/vehicles/image?${qs}`).then((r) => r.image).catch(() => null);
+    imageCache.set(key, p);
+  }
+  return imageCache.get(key)!;
+}
+
+function useVehicleImage(brand: string, model: string, delay = 0) {
+  const [state, setState] = useState<{ key: string; image: VehicleImage; loading: boolean }>({ key: '', image: null, loading: false });
+  const b = brand.trim();
+  const m = model.trim();
+  const key = `${b}|${m}`;
+  useEffect(() => {
+    if (!b || !m) { setState({ key, image: null, loading: false }); return; }
+    let alive = true;
+    setState((cur) => ({ key, image: cur.key === key ? cur.image : null, loading: true }));
+    const timer = window.setTimeout(() => {
+      fetchVehicleImage(b, m).then((image) => { if (alive) setState({ key, image, loading: false }); });
+    }, delay);
+    return () => { alive = false; window.clearTimeout(timer); };
+  }, [b, m, key, delay]);
+  return state;
+}
+
+function VehiclePhoto({ brand, model }: { brand: string; model: string }) {
+  const { image } = useVehicleImage(brand, model);
+  const [failed, setFailed] = useState(false);
+  if (!image || failed) {
+    return <motion.div whileHover={{ x: [0, 6, -6, 0] }} transition={{ duration: 0.6 }}><Car size={38} strokeWidth={1.5} /></motion.div>;
+  }
+  return <img className="vehicle-photo" src={image.url} alt={`${brand} ${model}`} loading="lazy" onError={() => setFailed(true)} />;
+}
 
 type Draft = { brand: string; model: string; year: string; plate: string; mileage: string; fuel: Fuel };
 const blank: Draft = { brand: '', model: '', year: String(new Date().getFullYear()), plate: '', mileage: '0', fuel: 'gasoline' };
@@ -19,9 +60,11 @@ export default function Vehicles() {
   const [editing, setEditing] = useState<{ id?: string; draft: Draft } | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [customBrand, setCustomBrand] = useState(false); // marca escrita a mano (no está en la lista)
 
   const open = (v?: Vehicle) => {
     setFormError(null);
+    setCustomBrand(Boolean(v && !VEHICLE_CATALOG[v.brand]));
     setEditing({
       id: v?.id,
       draft: v ? { brand: v.brand, model: v.model, year: String(v.year), plate: v.plate ?? '', mileage: String(v.mileage), fuel: v.fuel } : blank,
@@ -53,8 +96,11 @@ export default function Vehicles() {
     reload();
   }
 
-  const set = (k: keyof Draft) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setEditing((cur) => cur && { ...cur, draft: { ...cur.draft, [k]: e.target.value } });
+  const set = (k: keyof Draft) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const value = k === 'plate' ? formatPlate(e.target.value) : e.target.value;
+    setEditing((cur) => cur && { ...cur, draft: { ...cur.draft, [k]: value } });
+  };
+  const setDraft = (patch: Partial<Draft>) => setEditing((cur) => cur && { ...cur, draft: { ...cur.draft, ...patch } });
 
   if (loading) return <Spinner />;
   const vehicles = data?.vehicles ?? [];
@@ -72,7 +118,7 @@ export default function Vehicles() {
         <Stagger className="grid grid-3">
           {vehicles.map((v) => (
             <motion.div className="card vehicle-card" key={v.id} variants={itemVariants} whileHover={{ y: -4 }}>
-              <div className="vehicle-art"><motion.div whileHover={{ x: [0, 6, -6, 0] }} transition={{ duration: 0.6 }}><Car size={38} strokeWidth={1.5} /></motion.div></div>
+              <div className="vehicle-art"><VehiclePhoto brand={v.brand} model={v.model} /></div>
               <div>
                 <h3>{v.brand} {v.model}</h3>
                 <span className="muted small">{v.year}{v.plate ? ` · ${v.plate}` : ''}</span>
@@ -97,10 +143,33 @@ export default function Vehicles() {
           <form onSubmit={save} className="stack">
             <ErrorAlert message={formError} />
             <div className="form-grid">
-              <Field label={t('veh.brand')}><input className="input" value={editing.draft.brand} onChange={set('brand')} placeholder="Toyota" required autoFocus /></Field>
-              <Field label={t('veh.model')}><input className="input" value={editing.draft.model} onChange={set('model')} placeholder="Corolla" required /></Field>
+              <Field label={t('veh.brand')}>
+                {customBrand ? (
+                  <div className="input-with-action">
+                    <input className="input" value={editing.draft.brand} onChange={set('brand')} placeholder={t('veh.writeBrand')} required autoFocus />
+                    <button type="button" className="link-btn" onClick={() => { setCustomBrand(false); setDraft({ brand: '', model: '' }); }}>{t('veh.backToList')}</button>
+                  </div>
+                ) : (
+                  <select className="select" value={editing.draft.brand} required autoFocus
+                    onChange={(e) => {
+                      if (e.target.value === OTHER_BRAND) { setCustomBrand(true); setDraft({ brand: '', model: '' }); }
+                      else setDraft({ brand: e.target.value, model: '' });
+                    }}>
+                    <option value="" disabled>{t('veh.pickBrand')}</option>
+                    {VEHICLE_BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
+                    <option value={OTHER_BRAND}>{t('veh.otherBrand')}</option>
+                  </select>
+                )}
+              </Field>
+              <Field label={t('veh.model')}>
+                <input className="input" list="veh-models" value={editing.draft.model} onChange={set('model')}
+                  placeholder={t('veh.pickModel')} required disabled={!editing.draft.brand} />
+                <datalist id="veh-models">
+                  {(VEHICLE_CATALOG[editing.draft.brand] ?? []).map((m) => <option key={m} value={m} />)}
+                </datalist>
+              </Field>
               <Field label={t('veh.year')}><input className="input" type="number" value={editing.draft.year} onChange={set('year')} required /></Field>
-              <Field label={t('veh.plate')}><input className="input" value={editing.draft.plate} onChange={set('plate')} /></Field>
+              <Field label={t('veh.plate')}><input className="input input-plate" value={editing.draft.plate} onChange={set('plate')} placeholder="ABC-56H" maxLength={9} autoCapitalize="characters" spellCheck={false} /></Field>
               <Field label={t('veh.mileage')}><input className="input" type="number" min={0} value={editing.draft.mileage} onChange={set('mileage')} /></Field>
               <Field label={t('veh.fuel')}>
                 <select className="select" value={editing.draft.fuel} onChange={set('fuel')}>
@@ -108,6 +177,7 @@ export default function Vehicles() {
                 </select>
               </Field>
             </div>
+            <PhotoPreview brand={editing.draft.brand} model={editing.draft.model} />
             <div className="modal-actions">
               <button type="button" className="btn" onClick={() => setEditing(null)}>{t('common.cancel')}</button>
               <button className="btn btn-primary" disabled={busy}>{busy ? t('common.saving') : t('common.save')}</button>
@@ -116,6 +186,25 @@ export default function Vehicles() {
         </Modal>
       )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/** Vista previa en el formulario: busca la foto mientras escribes (con una pequeña espera) */
+function PhotoPreview({ brand, model }: { brand: string; model: string }) {
+  const { t } = useT();
+  const { image, loading } = useVehicleImage(brand, model, 600);
+  if (!brand.trim() || !model.trim()) return null;
+  return (
+    <div className="vehicle-preview" aria-live="polite">
+      {image ? (
+        <>
+          <img src={image.url} alt={`${brand} ${model}`} />
+          <a className="vehicle-preview-credit" href={image.page} target="_blank" rel="noreferrer">{t('veh.photoSource')} · {image.title}</a>
+        </>
+      ) : (
+        <div className="vehicle-preview-empty"><Car size={28} strokeWidth={1.5} /><span>{loading ? t('veh.photoSearching') : t('veh.photoNone')}</span></div>
+      )}
     </div>
   );
 }
