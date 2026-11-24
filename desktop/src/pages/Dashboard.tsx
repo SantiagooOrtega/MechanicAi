@@ -8,7 +8,7 @@ import { useAsync } from '../useAsync';
 import { useT } from '../i18n';
 import { formatDate, formatMoney, formatNumber, monthLabel, vehicleName } from '../format';
 import type { DashboardData } from '../types';
-import { Empty, ErrorAlert, PageHead, Spinner, UrgencyBadge } from '../components/ui';
+import { Empty, ErrorAlert, Spinner, UrgencyBadge } from '../components/ui';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -29,13 +29,30 @@ export default function Dashboard() {
 
   return (
     <div className="page">
-      <PageHead
-        title={t('dash.hello', { name: user?.name.split(' ')[0] ?? '' })}
-        subtitle={t('dash.subtitle')}
-        action={totals.vehicles === 0
-          ? <Link to="/vehicles?add=1" className="btn btn-primary btn-lg"><Car size={18} />{t('dash.registerVehicle')}</Link>
-          : <Link to="/diagnosis/new" className="btn btn-primary btn-lg"><Stethoscope size={18} />{t('dash.newDiagnosis')}</Link>}
-      />
+      <section className="dash-hero">
+        <div className="dash-hero-text">
+          <h1>{t('dash.hello', { name: user?.name.split(' ')[0] ?? '' })}</h1>
+          <p>{totals.vehicles === 0 ? t('hero.empty')
+            : totals.urgent > 0 ? t('hero.urgent', { n: String(totals.urgent) })
+            : totals.open > 0 ? t('hero.open', { n: String(totals.open) })
+            : t('hero.ok')}</p>
+        </div>
+        <Stagger className="quick-actions">
+          {[
+            { to: totals.vehicles === 0 ? '/vehicles?add=1&next=diagnose' : '/diagnosis/new', icon: Stethoscope, title: t('qa.diagnose'), text: t('qa.diagnoseText'), primary: totals.vehicles > 0 },
+            { to: '/vehicles?add=1', icon: Car, title: t('qa.vehicle'), text: t('qa.vehicleText'), primary: totals.vehicles === 0 },
+            { to: '/maintenance', icon: Wrench, title: t('qa.maintenance'), text: t('qa.maintenanceText'), primary: false },
+          ].map(({ to, icon: Icon, title, text, primary }) => (
+            <Item key={title}>
+              <Link to={to} className={`qa-tile${primary ? ' primary' : ''}`}>
+                <span className="qa-icon"><Icon size={22} /></span>
+                <span className="qa-text"><strong>{title}</strong><small>{text}</small></span>
+                <ArrowRight size={18} className="qa-arrow" />
+              </Link>
+            </Item>
+          ))}
+        </Stagger>
+      </section>
 
       <GettingStarted vehicles={totals.vehicles} diagnoses={totals.diagnoses} maintenance={totals.maintenance} />
 
