@@ -5,6 +5,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  nickname?: string | null;
+  avatar?: string | null;
 }
 
 export interface Vehicle {
