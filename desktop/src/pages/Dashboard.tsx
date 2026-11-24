@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Counter, Item, Stagger } from '../components/motion';
-import { AlertOctagon, ArrowRight, CalendarClock, Car, Check, ClipboardList, FolderOpen, ListTodo, Lock, PartyPopper, Plus, Stethoscope, Wrench } from 'lucide-react';
+import { AlertOctagon, ArrowRight, CalendarClock, Car, ClipboardList, FolderOpen, ListTodo, PartyPopper, Plus, Stethoscope, Wrench } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../auth';
 import { useAsync } from '../useAsync';
@@ -55,7 +55,6 @@ export default function Dashboard() {
         </Stagger>
       </section>
 
-      <GettingStarted vehicles={totals.vehicles} diagnoses={totals.diagnoses} maintenance={totals.maintenance} />
 
       <Stagger className="grid grid-4" style={{ marginBottom: 18 }}>
         {stats.map(({ label, value, icon: Icon, tone, to }) => (
@@ -146,47 +145,5 @@ export default function Dashboard() {
         </Item>
       </Stagger>
     </div>
-  );
-}
-
-/** Guía de primeros pasos: se muestra hasta completar los 3 pasos, en orden */
-function GettingStarted({ vehicles, diagnoses, maintenance }: { vehicles: number; diagnoses: number; maintenance: number }) {
-  const { t } = useT();
-  const steps = [
-    { done: vehicles > 0, icon: Car, key: 's1' as const, to: '/vehicles?add=1' },
-    { done: diagnoses > 0, icon: Stethoscope, key: 's2' as const, to: '/diagnosis/new' },
-    { done: maintenance > 0, icon: Wrench, key: 's3' as const, to: '/maintenance' },
-  ];
-  const doneCount = steps.filter((s) => s.done).length;
-  if (doneCount === steps.length) return null;
-  const current = steps.findIndex((s) => !s.done);
-
-  return (
-    <motion.section className="card guide" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-      <div className="guide-head">
-        <h3>{t('guide.title')}</h3>
-        <span className="guide-progress">{t('guide.progress', { done: String(doneCount) })}</span>
-      </div>
-      <div className="guide-bar"><motion.span initial={{ width: 0 }} animate={{ width: `${(doneCount / steps.length) * 100}%` }} transition={{ duration: 0.6 }} /></div>
-      <ol className="guide-steps">
-        {steps.map((s, i) => {
-          const state = s.done ? 'done' : i === current ? 'current' : 'locked';
-          const Icon = s.icon;
-          return (
-            <li key={s.key} className={`guide-step ${state}`}>
-              <div className="guide-num">{s.done ? <Check size={16} /> : state === 'locked' ? <Lock size={14} /> : i + 1}</div>
-              <div className="guide-body">
-                <strong><Icon size={15} /> {t(`guide.${s.key}.title`)}</strong>
-                <p>{t(`guide.${s.key}.text`)}</p>
-                {state === 'current' && (
-                  <Link to={s.to} className="btn btn-primary btn-sm">{t(`guide.${s.key}.cta`)} <ArrowRight size={14} /></Link>
-                )}
-                {state === 'locked' && <span className="guide-locked">{t('guide.locked')}</span>}
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-    </motion.section>
   );
 }
