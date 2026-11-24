@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Counter, Item, Stagger } from '../components/motion';
-import { AlertOctagon, ArrowRight, CalendarClock, Car, Check, ClipboardList, FolderOpen, Lock, Plus, Stethoscope, Wrench } from 'lucide-react';
+import { AlertOctagon, ArrowRight, CalendarClock, Car, Check, ClipboardList, FolderOpen, ListTodo, Lock, PartyPopper, Plus, Stethoscope, Wrench } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../auth';
 import { useAsync } from '../useAsync';
@@ -18,7 +18,8 @@ export default function Dashboard() {
   if (loading) return <Spinner />;
   if (!data) return <div className="page"><ErrorAlert message={error} /></div>;
 
-  const { totals, recent, upcoming, spending } = data;
+  const { totals, recent, upcoming, spending, pending } = data;
+  const pendingCount = pending.length + upcoming.length;
   const max = Math.max(...spending.map((s) => s.total), 1);
   const stats = [
     { label: t('dash.stat.vehicles'), value: totals.vehicles, icon: Car, tone: '', to: '/vehicles' },
@@ -70,50 +71,62 @@ export default function Dashboard() {
       </Stagger>
 
       <Stagger className="grid grid-2">
-        <Item className="card">
-          <div className="card-title"><h3>{t('dash.recent')}</h3><Link to="/diagnoses">{t('dash.viewAll')}</Link></div>
-          {recent.length === 0 ? (
-            <Empty icon={Stethoscope} title={t('dash.emptyTitle')} text={t('dash.emptyText')}
-              action={totals.vehicles === 0
-                ? <Link to="/vehicles?add=1" className="btn btn-primary"><Car size={16} />{t('dash.registerVehicle')}</Link>
-                : <Link to="/diagnosis/new" className="btn btn-primary"><Plus size={16} />{t('dash.createFirst')}</Link>} />
+        <Item className="card pending">
+          <div className="card-title"><h3><ListTodo size={18} /> {t('pend.title')}</h3>
+            {pendingCount > 0 && <span className="pending-count">{pendingCount}</span>}</div>
+          {pendingCount === 0 ? (
+            <div className="pending-empty"><PartyPopper size={26} /><strong>{t('pend.emptyTitle')}</strong><span>{t('pend.emptyText')}</span></div>
           ) : (
-            <Stagger className="list">
-              {recent.map((d) => (
-                <Item key={d.id}><Link to={`/diagnoses/${d.id}`} className="list-item">
+            <div className="list">
+              {pending.map((d) => (
+                <Link key={d.id} to={`/diagnoses/${d.id}`} className="list-item pending-item">
+                  <div className={`dot-icon urg-${d.urgency ?? 'low'}`}><Stethoscope size={17} /></div>
                   <div className="list-main">
                     <strong>{d.symptoms}</strong>
-                    <span>{vehicleName({ brand: d.vehicle_brand, model: d.vehicle_model, year: d.vehicle_year }, t('common.noVehicle'))} · {formatDate(d.created_at)}</span>
+                    <span>{vehicleName({ brand: d.vehicle_brand, model: d.vehicle_model, year: d.vehicle_year }, t('common.noVehicle'))} · {t('pend.openCase')}</span>
                   </div>
                   <UrgencyBadge urgency={d.urgency} />
-                </Link></Item>
+                </Link>
               ))}
-            </Stagger>
+              {upcoming.map((m) => (
+                <Link key={m.id} to="/maintenance" className="list-item pending-item">
+                  <div className="dot-icon"><CalendarClock size={17} /></div>
+                  <div className="list-main">
+                    <strong>{m.type}</strong>
+                    <span>{m.vehicle_brand} {m.vehicle_model} · {t('pend.serviceOn', { date: formatDate(m.next_due_date!) })}</span>
+                  </div>
+                  <span className="badge">{t('pend.service')}</span>
+                </Link>
+              ))}
+            </div>
           )}
         </Item>
 
         <Item className="stack">
           <div className="card">
-            <div className="card-title"><h3>{t('dash.upcoming')}</h3><Link to="/maintenance">{t('dash.viewEverything')}</Link></div>
-            {upcoming.length === 0 ? (
-              <p className="muted small">{t('dash.upcomingEmpty')}</p>
+            <div className="card-title"><h3>{t('dash.recent')}</h3><Link to="/diagnoses">{t('dash.viewAll')}</Link></div>
+            {recent.length === 0 ? (
+              <Empty icon={Stethoscope} title={t('dash.emptyTitle')} text={t('dash.emptyText')}
+                action={totals.vehicles === 0
+                  ? <Link to="/vehicles?add=1" className="btn btn-primary"><Car size={16} />{t('dash.registerVehicle')}</Link>
+                  : <Link to="/diagnosis/new" className="btn btn-primary"><Plus size={16} />{t('dash.createFirst')}</Link>} />
             ) : (
-              <div className="list">
-                {upcoming.map((m) => (
-                  <div className="list-item" key={m.id}>
-                    <div className="dot-icon"><CalendarClock size={18} /></div>
+              <Stagger className="list">
+                {recent.map((d) => (
+                  <Item key={d.id}><Link to={`/diagnoses/${d.id}`} className="list-item">
                     <div className="list-main">
-                      <strong>{m.type}</strong>
-                      <span>{m.vehicle_brand} {m.vehicle_model} · {formatDate(m.next_due_date!)}</span>
+                      <strong>{d.symptoms}</strong>
+                      <span>{vehicleName({ brand: d.vehicle_brand, model: d.vehicle_model, year: d.vehicle_year }, t('common.noVehicle'))} · {formatDate(d.created_at)}</span>
                     </div>
-                  </div>
+                    <UrgencyBadge urgency={d.urgency} />
+                  </Link></Item>
                 ))}
-              </div>
+              </Stagger>
             )}
           </div>
 
           <div className="card">
-            <div className="card-title"><h3>{t('dash.spending')}</h3></div>
+            <div className="card-title"><h3>{t('dash.spending')}</h3><Link to="/maintenance">{t('dash.viewEverything')}</Link></div>
             {spending.length === 0 ? (
               <p className="muted small">{t('dash.spendingEmpty')}</p>
             ) : (

@@ -609,3 +609,14 @@ button.garage-add { font: inherit; cursor: pointer; }
 .stat-link .stat-body { flex: 1; }
 .stat-arrow { color: var(--text-3); transition: transform 0.2s var(--ease), color 0.2s; }
 .stat-link:hover .stat-arrow { color: var(--accent); transform: translateX(3px); }
+
+/* ---------- Panel: pendientes ---------- */
+.pending .card-title h3 { display: flex; align-items: center; gap: 8px; }
+.pending-count { min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--accent-solid); color: #fff; }
+.pending-item { gap: 12px; }
+.dot-icon.urg-critical, .dot-icon.urg-high { background: var(--crit-soft); color: var(--crit); }
+.dot-icon.urg-medium { background: var(--warn-soft); color: var(--warn); }
+.dot-icon.urg-low { background: var(--ok-soft); color: var(--ok); }
+.pending-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 34px 12px; text-align: center; color: var(--ok); }
+.pending-empty strong { color: var(--text); font-size: 15px; }
+.pending-empty span { color: var(--text-2); font-size: 13px; }
