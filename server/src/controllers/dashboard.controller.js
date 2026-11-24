@@ -22,6 +22,7 @@ const DashboardController = {
           urgent: diagnoses.filter((d) => d.status === 'open' && ['high', 'critical'].includes(d.urgency)).length,
           maintenance: maintenance.length, // para la guía de primeros pasos
         },
+        vehicles, // para la sección "Tu garaje" del panel
         recent: diagnoses.slice(0, 5),
         upcoming,
         spending,

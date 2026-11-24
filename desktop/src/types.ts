@@ -67,6 +67,7 @@ export interface MaintenanceRecord {
 }
 
 export interface DashboardData {
+  vehicles: Vehicle[];
   totals: { vehicles: number; diagnoses: number; open: number; urgent: number; maintenance: number };
   recent: DiagnosisSummary[];
   upcoming: MaintenanceRecord[];
