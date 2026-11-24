@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { query } = require('../database/db');
 
-const PUBLIC_FIELDS = 'id, name, email, created_at';
+const PUBLIC_FIELDS = 'id, name, email, nickname, avatar, created_at';
 
 const UserModel = {
   async create({ name, email, password }) {
@@ -22,6 +22,15 @@ const UserModel = {
   async emailExists(email) {
     const result = await query('SELECT 1 FROM mechanicia.users WHERE email = $1', [email]);
     return result.rows.length > 0;
+  },
+
+  /** Preferencias del perfil: apodo (cómo lo llamamos) y avatar */
+  async updateProfile(id, { nickname, avatar }) {
+    const result = await query(
+      `UPDATE mechanicia.users SET nickname = $2, avatar = $3 WHERE id = $1 RETURNING ${PUBLIC_FIELDS}`,
+      [id, nickname || null, avatar || null]
+    );
+    return result.rows[0] || null;
   },
 
   verifyPassword(plain, hash) {

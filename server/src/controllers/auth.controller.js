@@ -4,7 +4,13 @@ const UserModel = require('../models/user.model');
 const signToken = (user) =>
   jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
-const publicUser = (user) => ({ id: user.id, name: user.name, email: user.email });
+const publicUser = (user) => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  nickname: user.nickname ?? null,
+  avatar: user.avatar ?? null,
+});
 
 const AuthController = {
   async register(req, res, next) {
@@ -36,6 +42,18 @@ const AuthController = {
 
   me(req, res) {
     res.json({ user: publicUser(req.user) });
+  },
+
+  async updateMe(req, res, next) {
+    try {
+      const user = await UserModel.updateProfile(req.user.id, {
+        nickname: req.body.nickname?.trim(),
+        avatar: req.body.avatar,
+      });
+      res.json({ user: publicUser(user) });
+    } catch (error) {
+      next(error);
+    }
   },
 };
 

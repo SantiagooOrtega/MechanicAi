@@ -17,7 +17,7 @@ const authenticate = async (req, res, next) => {
       return res.status(401).json({ error: 'Sesión inválida o expirada.', code });
     }
 
-    const result = await query('SELECT id, name, email FROM mechanicia.users WHERE id = $1', [decoded.id]);
+    const result = await query('SELECT id, name, email, nickname, avatar FROM mechanicia.users WHERE id = $1', [decoded.id]);
     if (result.rows.length === 0) {
       return res.status(401).json({ error: 'Usuario no encontrado.', code: 'USER_NOT_FOUND' });
     }

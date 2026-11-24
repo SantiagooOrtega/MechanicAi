@@ -30,5 +30,15 @@ router.post(
 );
 
 router.get('/me', authenticate, AuthController.me);
+router.patch(
+  '/me',
+  authenticate,
+  [
+    body('nickname').optional({ values: 'null' }).trim().isLength({ max: 40 }).withMessage('El apodo puede tener hasta 40 caracteres'),
+    body('avatar').optional({ values: 'null' }).matches(/^[a-z0-9-]{1,40}$/).withMessage('Avatar inválido'),
+  ],
+  validate,
+  AuthController.updateMe
+);
 
 module.exports = router;
