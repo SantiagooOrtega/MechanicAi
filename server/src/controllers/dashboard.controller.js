@@ -2,6 +2,8 @@ const DiagnosisModel = require('../models/diagnosis.model');
 const MaintenanceModel = require('../models/maintenance.model');
 const VehicleModel = require('../models/vehicle.model');
 
+const URGENCY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
+
 const DashboardController = {
   async summary(req, res, next) {
     try {
@@ -24,6 +26,11 @@ const DashboardController = {
         },
         vehicles, // para la sección "Tu garaje" del panel
         recent: diagnoses.slice(0, 5),
+        // casos abiertos, del más urgente al menos urgente (bloque "Pendientes" del panel)
+        pending: diagnoses
+          .filter((d) => d.status === 'open')
+          .sort((a, b) => (URGENCY_ORDER[a.urgency] ?? 9) - (URGENCY_ORDER[b.urgency] ?? 9))
+          .slice(0, 5),
         upcoming,
         spending,
       });

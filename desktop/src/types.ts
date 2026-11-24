@@ -70,6 +70,7 @@ export interface DashboardData {
   vehicles: Vehicle[];
   totals: { vehicles: number; diagnoses: number; open: number; urgent: number; maintenance: number };
   recent: DiagnosisSummary[];
+  pending: DiagnosisSummary[];
   upcoming: MaintenanceRecord[];
   spending: { month: string; total: number }[];
 }
