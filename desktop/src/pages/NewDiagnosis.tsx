@@ -2,12 +2,12 @@ import { useState, type FormEvent } from 'react';
 import { motion } from 'motion/react';
 import { PulseLine } from '../components/motion';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Sparkles, X } from 'lucide-react';
+import { ArrowRight, Car, Plus, Sparkles, X } from 'lucide-react';
 import { api } from '../api';
 import { useAsync } from '../useAsync';
 import { useT } from '../i18n';
 import type { Diagnosis, Vehicle } from '../types';
-import { ErrorAlert, Field, PageHead } from '../components/ui';
+import { ErrorAlert, Field, PageHead, Spinner } from '../components/ui';
 
 const OBD = /^[A-Za-z]\d{4}$/;
 
@@ -15,7 +15,7 @@ export default function NewDiagnosis() {
   const navigate = useNavigate();
   const { t } = useT();
   const [params] = useSearchParams();
-  const { data } = useAsync(() => api.get<{ vehicles: Vehicle[] }>('/vehicles'));
+  const { data, loading } = useAsync(() => api.get<{ vehicles: Vehicle[] }>('/vehicles'));
   const [vehicleId, setVehicleId] = useState(params.get('vehicle') ?? '');
   const [symptoms, setSymptoms] = useState('');
   const [codes, setCodes] = useState<string[]>([]);
@@ -38,7 +38,7 @@ export default function NewDiagnosis() {
     setBusy(true);
     try {
       const r = await api.post<{ diagnosis: Diagnosis }>('/diagnoses', {
-        symptoms, obd_codes: codes, vehicle_id: vehicleId || undefined,
+        symptoms, obd_codes: codes, vehicle_id: (vehicleId || (data?.vehicles.length === 1 ? data.vehicles[0].id : '')) || undefined,
       });
       navigate(`/diagnoses/${r.diagnosis.id}`, { replace: true });
     } catch (err) {
@@ -63,7 +63,26 @@ export default function NewDiagnosis() {
     );
   }
 
+  if (loading) return <Spinner />;
   const vehicles = data?.vehicles ?? [];
+
+  // Sin vehículos no se puede diagnosticar: se guía al usuario a registrarlo primero
+  if (vehicles.length === 0) {
+    return (
+      <div className="page" style={{ maxWidth: 780 }}>
+        <PageHead title={t('new.title')} subtitle={t('new.subtitle')} />
+        <motion.div className="card gate" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="gate-icon"><Car size={30} strokeWidth={1.6} /></div>
+          <h2>{t('new.gateTitle')}</h2>
+          <p>{t('new.gateText')}</p>
+          <Link to="/vehicles?add=1&next=diagnose" className="btn btn-primary btn-lg">{t('new.gateCta')} <ArrowRight size={18} /></Link>
+          <span className="small faint">{t('new.gateAfter')}</span>
+        </motion.div>
+      </div>
+    );
+  }
+  // con un solo vehículo se selecciona solo
+  const selectedId = vehicleId || (vehicles.length === 1 ? vehicles[0].id : '');
 
   return (
     <div className="page" style={{ maxWidth: 780 }}>
@@ -71,11 +90,11 @@ export default function NewDiagnosis() {
       <form className="card stack" onSubmit={submit} style={{ gap: 20 }}>
         <ErrorAlert message={error} />
         <Field label={t('new.vehicle')}>
-          <select className="select" value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>
-            <option value="">{t('new.unspecified')}</option>
-            {vehicles.map((v) => <option key={v.id} value={v.id}>{v.brand} {v.model} {v.year}</option>)}
+          <select className="select" value={selectedId} onChange={(e) => setVehicleId(e.target.value)} required>
+            <option value="" disabled>{t('new.pickVehicle')}</option>
+            {vehicles.map((v) => <option key={v.id} value={v.id}>{v.brand} {v.model} {v.year}{v.plate ? ` · ${v.plate}` : ''}</option>)}
           </select>
-          {vehicles.length === 0 && <span className="small faint">{t('new.noVehiclesA')} <Link to="/vehicles" style={{ color: 'var(--accent)' }}>{t('new.noVehiclesLink')}</Link> {t('new.noVehiclesB')}</span>}
+          <span className="small faint">{t('new.otherVehicle')} <Link to="/vehicles?add=1&next=diagnose" style={{ color: 'var(--accent)' }}>{t('new.addVehicle')}</Link></span>
         </Field>
 
         <Field label={t('new.whatHappens')}>
