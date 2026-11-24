@@ -3,6 +3,7 @@ const { createError } = require('../middleware/error.middleware');
 const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_ATTEMPTS = 3;
 const RETRYABLE = [429, 500, 503];
+const REQUEST_TIMEOUT_MS = 45000; // sin límite, una respuesta lenta de Gemini dejaba la app colgada
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -44,18 +45,25 @@ async function callGemini({ system, contents, schema }) {
   const model = process.env.GEMINI_MODEL || 'gemini-flash-latest';
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
-    const response = await fetch(`${API_URL}/${model}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents,
-        generationConfig: {
-          temperature: 0.4,
-          ...(schema && { responseMimeType: 'application/json', responseSchema: schema }),
-        },
-      }),
-    });
+    let response;
+    try {
+      response = await fetch(`${API_URL}/${model}:generateContent`, {
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: system }] },
+          contents,
+          generationConfig: {
+            temperature: 0.4,
+            ...(schema && { responseMimeType: 'application/json', responseSchema: schema }),
+          },
+        }),
+      });
+    } catch (err) {
+      if (attempt < MAX_ATTEMPTS && err.name !== 'TimeoutError') { await sleep(attempt * 1500); continue; }
+      throw createError('La IA tardó demasiado en responder. Intenta de nuevo en un momento.', 504, 'AI_TIMEOUT');
+    }
 
     if (response.ok) {
       const data = await response.json();
@@ -67,6 +75,11 @@ async function callGemini({ system, contents, schema }) {
     if (RETRYABLE.includes(response.status) && attempt < MAX_ATTEMPTS) {
       await sleep(attempt * 2500);
       continue;
+    }
+    if ([400, 401, 403, 404].includes(response.status)) {
+      // clave o modelo inválidos: problema de configuración, no algo temporal
+      console.error(`[ai] Gemini respondió ${response.status} con el modelo ${model}; revisa GEMINI_API_KEY (debe empezar por AIza) y GEMINI_MODEL`);
+      throw createError('La IA no está bien configurada en el servidor.', 503, 'AI_MISCONFIGURED');
     }
     const code = response.status === 429 ? 'AI_QUOTA' : 'AI_UNAVAILABLE';
     throw createError('El asistente no está disponible ahora. Intenta de nuevo en un momento.', 503, code);
