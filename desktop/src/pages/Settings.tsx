@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Check, Save } from 'lucide-react';
 import { useAuth } from '../auth';
@@ -10,10 +11,10 @@ import { ErrorAlert, Field, PageHead } from '../components/ui';
 export default function Settings() {
   const { user, updateProfile } = useAuth();
   const { t } = useT();
+  const navigate = useNavigate();
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [avatar, setAvatar] = useState<string | null>(user?.avatar ?? null);
   const [busy, setBusy] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!user) return null;
@@ -26,8 +27,9 @@ export default function Settings() {
     setError(null);
     try {
       await updateProfile({ nickname: nickname.trim() || null, avatar });
-      setSaved(true);
-      window.setTimeout(() => setSaved(false), 2500);
+      // al guardar se vuelve a la pantalla anterior (o al panel si se entró directo)
+      if (window.history.state?.idx > 0) navigate(-1);
+      else navigate('/', { replace: true });
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -86,9 +88,7 @@ export default function Settings() {
         </div>
 
         <div className="row between">
-          <span className="small" style={{ color: 'var(--ok)', opacity: saved ? 1 : 0, transition: 'opacity 0.3s' }}>
-            <Check size={14} style={{ verticalAlign: -2 }} /> {t('cfg.saved')}
-          </span>
+          <button type="button" className="btn btn-lg" onClick={() => (window.history.state?.idx > 0 ? navigate(-1) : navigate('/'))}>{t('common.cancel')}</button>
           <button className="btn btn-primary btn-lg" disabled={busy || !dirty}><Save size={18} />{busy ? t('common.saving') : t('common.save')}</button>
         </div>
       </form>
