@@ -1,9 +1,13 @@
 const { createError } = require('../middleware/error.middleware');
 
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
-const MAX_ATTEMPTS = 3;
+// Interactions API de Gemini (generateContent ya no acepta los modelos actuales con claves nuevas)
+const API_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
+const API_REVISION = '2026-05-20';
+// Modelos en orden: si uno está saturado (503/429) se pasa al siguiente
+const DEFAULT_MODELS = ['gemini-3.6-flash', 'gemini-3.5-flash-lite'];
+const MAX_ATTEMPTS = 2; // intentos por modelo
 const RETRYABLE = [429, 500, 503];
-const REQUEST_TIMEOUT_MS = 45000; // sin límite, una respuesta lenta de Gemini dejaba la app colgada
+const REQUEST_TIMEOUT_MS = 45000; // sin límite, una respuesta lenta dejaba la app colgada
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -39,51 +43,84 @@ const describeVehicle = (v) =>
     ? `${v.brand} ${v.model} ${v.year}, ${v.mileage} km, combustible: ${v.fuel}`
     : 'vehículo no especificado';
 
+/** Esquema estilo Gemini (OBJECT, STRING…) → JSON Schema (object, string…) que pide la Interactions API */
+function toJsonSchema(node) {
+  if (Array.isArray(node)) return node.map(toJsonSchema);
+  if (!node || typeof node !== 'object') return node;
+  const out = {};
+  for (const [k, v] of Object.entries(node)) out[k] = k === 'type' && typeof v === 'string' ? v.toLowerCase() : toJsonSchema(v);
+  return out;
+}
+
+/** Mensajes con rol user/model → pasos de la Interactions API */
+const toSteps = (contents) =>
+  contents.map((c) => ({
+    type: c.role === 'model' ? 'model_output' : 'user_input',
+    content: c.parts.map((p) => ({ type: 'text', text: p.text })),
+  }));
+
+function modelList() {
+  const custom = (process.env.GEMINI_MODELS || process.env.GEMINI_MODEL || '').split(',').map((m) => m.trim()).filter(Boolean);
+  return custom.length ? custom : DEFAULT_MODELS;
+}
+
 async function callGemini({ system, contents, schema }) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw createError('La IA no está configurada en el servidor.', 503, 'AI_NOT_CONFIGURED');
-  const model = process.env.GEMINI_MODEL || 'gemini-flash-latest';
 
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
-    let response;
-    try {
-      response = await fetch(`${API_URL}/${model}:generateContent`, {
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: system }] },
-          contents,
-          generationConfig: {
-            temperature: 0.4,
-            ...(schema && { responseMimeType: 'application/json', responseSchema: schema }),
-          },
-        }),
-      });
-    } catch (err) {
-      if (attempt < MAX_ATTEMPTS && err.name !== 'TimeoutError') { await sleep(attempt * 1500); continue; }
-      throw createError('La IA tardó demasiado en responder. Intenta de nuevo en un momento.', 504, 'AI_TIMEOUT');
-    }
+  const body = {
+    system_instruction: system,
+    input: toSteps(contents),
+    store: false, // el historial lo guarda nuestra base de datos
+    generation_config: { thinking_level: 'low' }, // algo más rápido (~20 s en vez de ~25 s) sin perder calidad
+    ...(schema && { response_format: { type: 'text', mime_type: 'application/json', schema: toJsonSchema(schema) } }),
+  };
 
-    if (response.ok) {
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) throw createError('La IA no devolvió una respuesta.', 502, 'AI_EMPTY');
-      return schema ? JSON.parse(text) : text.trim();
-    }
+  let lastStatus = 0;
+  for (const model of modelList()) {
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+      let response;
+      try {
+        response = await fetch(API_URL, {
+          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key, 'Api-Revision': API_REVISION },
+          body: JSON.stringify({ model, ...body }),
+        });
+      } catch (err) {
+        lastStatus = 504;
+        if (err.name === 'TimeoutError') break; // probar el siguiente modelo
+        if (attempt < MAX_ATTEMPTS) { await sleep(1500); continue; }
+        break;
+      }
 
-    if (RETRYABLE.includes(response.status) && attempt < MAX_ATTEMPTS) {
-      await sleep(attempt * 2500);
-      continue;
+      if (response.ok) {
+        const data = await response.json();
+        const text = (data.steps || [])
+          .filter((s) => s.type === 'model_output')
+          .flatMap((s) => s.content || [])
+          .filter((c) => c.type === 'text')
+          .map((c) => c.text)
+          .join('');
+        if (!text) throw createError('La IA no devolvió una respuesta.', 502, 'AI_EMPTY');
+        return schema ? JSON.parse(text) : text.trim();
+      }
+
+      lastStatus = response.status;
+      if ([400, 401, 403].includes(response.status)) {
+        const detail = await response.text().catch(() => '');
+        console.error(`[ai] Gemini respondió ${response.status} con ${model}: ${detail.slice(0, 300)}`);
+        throw createError('La IA no está bien configurada en el servidor.', 503, 'AI_MISCONFIGURED');
+      }
+      if (response.status === 404) break; // modelo no disponible: siguiente
+      if (RETRYABLE.includes(response.status) && attempt < MAX_ATTEMPTS) { await sleep(attempt * 2000); continue; }
+      break;
     }
-    if ([400, 401, 403, 404].includes(response.status)) {
-      // clave o modelo inválidos: problema de configuración, no algo temporal
-      console.error(`[ai] Gemini respondió ${response.status} con el modelo ${model}; revisa GEMINI_API_KEY (debe empezar por AIza) y GEMINI_MODEL`);
-      throw createError('La IA no está bien configurada en el servidor.', 503, 'AI_MISCONFIGURED');
-    }
-    const code = response.status === 429 ? 'AI_QUOTA' : 'AI_UNAVAILABLE';
-    throw createError('El asistente no está disponible ahora. Intenta de nuevo en un momento.', 503, code);
   }
+
+  if (lastStatus === 504) throw createError('La IA tardó demasiado en responder. Intenta de nuevo en un momento.', 504, 'AI_TIMEOUT');
+  const code = lastStatus === 429 ? 'AI_QUOTA' : 'AI_UNAVAILABLE';
+  throw createError('El asistente no está disponible ahora. Intenta de nuevo en un momento.', 503, code);
 }
 
 const systemPrompt = (lang) => [
