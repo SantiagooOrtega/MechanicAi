@@ -171,6 +171,7 @@ button { cursor: pointer; }
 .card-title a { font-size: 13px; color: var(--accent); text-decoration: none; font-weight: 500; }
 .card-title a:hover { text-decoration: underline; }
 .grid { display: grid; gap: 18px; }
+.grid > * { min-width: 0; } /* sin esto, un texto largo ensancha la columna y se sale de la pantalla */
 .grid-4 { grid-template-columns: repeat(4, 1fr); }
 .grid-2 { grid-template-columns: 1.4fr 1fr; }
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
