@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useT, type Key, type Lang } from '../../i18n';
 import { LogoMark } from '../Logo';
+import { UserAvatar, displayName } from '../avatar';
 
 /**
  * Sidebar colapsable: se contrae a íconos, tiene un grupo desplegable y un menú de ajustes
@@ -17,7 +18,7 @@ import { LogoMark } from '../Logo';
 export type ThemeMode = 'dark' | 'light';
 
 interface SidebarProps {
-  user: { name: string; email: string };
+  user: { name: string; email: string; nickname?: string | null; avatar?: string | null };
   theme: ThemeMode;
   onThemeChange: (t: ThemeMode) => void;
   onLogout: () => void;
@@ -104,9 +105,9 @@ export default function CollapsibleSidebar({ user, theme, onThemeChange, onLogou
         <Dropdown.Root>
           <Dropdown.Trigger asChild>
             <button className="sb-user" title={t('settings.title')}>
-              <span className="avatar">{user.name.charAt(0).toUpperCase()}</span>
+              <UserAvatar user={user} />
               <span className="user-meta sb-label">
-                <strong>{user.name}</strong>
+                <strong>{displayName(user)}</strong>
                 <small>{user.email}</small>
               </span>
               <ChevronsUpDown size={15} className="sb-label sb-chev" />

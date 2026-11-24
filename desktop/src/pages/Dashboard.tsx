@@ -4,6 +4,7 @@ import { Counter, Item, Stagger } from '../components/motion';
 import { AlertOctagon, ArrowRight, CalendarClock, Car, ClipboardList, FolderOpen, ListTodo, PartyPopper, Plus, Stethoscope, Wrench } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../auth';
+import { displayName } from '../components/avatar';
 import { useAsync } from '../useAsync';
 import { useT } from '../i18n';
 import { formatDate, formatMoney, formatNumber, monthLabel, vehicleName } from '../format';
@@ -32,7 +33,7 @@ export default function Dashboard() {
     <div className="page">
       <section className="dash-hero">
         <div className="dash-hero-text">
-          <h1>{t('dash.hello', { name: user?.name.split(' ')[0] ?? '' })}</h1>
+          <h1>{t('dash.hello', { name: displayName(user) })}</h1>
           <p>{totals.vehicles === 0 ? t('hero.empty')
             : totals.urgent > 0 ? t('hero.urgent', { n: String(totals.urgent) })
             : totals.open > 0 ? t('hero.open', { n: String(totals.open) })
