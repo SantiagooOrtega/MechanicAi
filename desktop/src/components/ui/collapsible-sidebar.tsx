@@ -64,7 +64,7 @@ export default function CollapsibleSidebar({ user, theme, onThemeChange, onLogou
       transition={{ type: 'spring', stiffness: 320, damping: 36 }}>
       <button className="sb-edge" onClick={() => setOpen((o) => !o)} aria-label={open ? t('sidebar.collapse') : t('sidebar.expand')}
         title={open ? t('sidebar.collapse') : t('sidebar.expand')}>
-        <motion.span animate={{ rotate: open ? 0 : 180 }} style={{ display: 'grid' }}><ChevronLeft size={14} /></motion.span>
+        <motion.span animate={{ rotate: open ? 0 : 180 }}><ChevronLeft size={16} /></motion.span>
       </button>
 
       <div className="sb-head">

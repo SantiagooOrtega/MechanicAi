@@ -95,12 +95,25 @@ button { cursor: pointer; }
 .sb button, .sb a { -webkit-app-region: no-drag; }
 .sb-label { white-space: nowrap; transition: opacity 0.18s; }
 .sb[data-open='false'] .sb-label { opacity: 0; pointer-events: none; }
+/* Botón para desplegar/plegar el menú. El botón real mide 44px (área de clic cómoda) y dibuja
+   un círculo de 30px dentro; además se excluye de la zona de arrastre de la ventana de Electron,
+   que antes se comía los clics y solo respondía en un punto muy pequeño. */
 .sb-edge {
-  position: absolute; top: 56px; right: -13px; z-index: 30; width: 26px; height: 26px; border-radius: 50%;
-  display: grid; place-items: center; padding: 0; background: var(--surface-2); color: var(--text-2);
-  border: 1px solid var(--border-strong); transition: background 0.15s, color 0.15s, border-color 0.15s;
+  position: absolute; top: 49px; right: -22px; z-index: 30; width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center; padding: 0; background: transparent; border: none; color: var(--text-2);
+  cursor: pointer; -webkit-app-region: no-drag;
 }
-.sb-edge:hover { background: var(--accent-solid); border-color: var(--accent-solid); color: #fff; }
+.sb-edge > span {
+  width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; pointer-events: none;
+  background: var(--surface-2); border: 1px solid var(--border-strong); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.sb-edge { transition: transform 0.15s; }
+.sb-edge:hover { transform: scale(1.08); }
+.sb-edge:active { transform: scale(0.94); }
+.sb-edge:hover > span { background: var(--accent-solid); border-color: var(--accent-solid); color: #fff; }
+.sb-edge:focus-visible { outline: none; }
+.sb-edge:focus-visible > span { box-shadow: 0 0 0 3px var(--accent-soft); }
 .sb-head { display: flex; align-items: center; gap: 11px; padding: 0 8px 22px; overflow: hidden; }
 .sb-brand { font-family: var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: -0.02em; }
 .sb-brand span { color: var(--accent); }
