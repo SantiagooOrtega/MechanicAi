@@ -7,8 +7,7 @@ import { useAuth } from '../auth';
 import { useAsync } from '../useAsync';
 import { useT } from '../i18n';
 import { formatDate, formatMoney, formatNumber, monthLabel, vehicleName } from '../format';
-import type { DashboardData, Vehicle } from '../types';
-import { VehiclePhoto } from '../components/vehicle-photo';
+import type { DashboardData } from '../types';
 import { Empty, ErrorAlert, Spinner, UrgencyBadge } from '../components/ui';
 
 export default function Dashboard() {
@@ -19,7 +18,7 @@ export default function Dashboard() {
   if (loading) return <Spinner />;
   if (!data) return <div className="page"><ErrorAlert message={error} /></div>;
 
-  const { totals, recent, upcoming, spending, vehicles } = data;
+  const { totals, recent, upcoming, spending } = data;
   const max = Math.max(...spending.map((s) => s.total), 1);
   const stats = [
     { label: t('dash.stat.vehicles'), value: totals.vehicles, icon: Car, tone: '' },
@@ -56,8 +55,6 @@ export default function Dashboard() {
       </section>
 
       <GettingStarted vehicles={totals.vehicles} diagnoses={totals.diagnoses} maintenance={totals.maintenance} />
-
-      {vehicles.length > 0 && <Garage vehicles={vehicles} />}
 
       <Stagger className="grid grid-4" style={{ marginBottom: 18 }}>
         {stats.map(({ label, value, icon: Icon, tone }) => (
@@ -177,39 +174,5 @@ function GettingStarted({ vehicles, diagnoses, maintenance }: { vehicles: number
         })}
       </ol>
     </motion.section>
-  );
-}
-
-/** "Tu garaje": los vehículos con su foto y acceso directo a diagnosticarlos, más una tarjeta para agregar otro */
-function Garage({ vehicles }: { vehicles: Vehicle[] }) {
-  const { t } = useT();
-  return (
-    <section className="garage">
-      <div className="section-head">
-        <div><h2>{t('garage.title')}</h2><p>{t('garage.subtitle')}</p></div>
-        <Link to="/vehicles" className="section-link">{t('dash.viewAll')} <ArrowRight size={14} /></Link>
-      </div>
-      <Stagger className="garage-grid">
-        {vehicles.slice(0, 5).map((v) => (
-          <Item key={v.id}>
-            <Link to={`/diagnosis/new?vehicle=${v.id}`} className="garage-card">
-              <div className="garage-photo"><VehiclePhoto brand={v.brand} model={v.model} /></div>
-              <div className="garage-info">
-                <strong>{v.brand} {v.model}</strong>
-                <span>{v.year}{v.plate ? ` · ${v.plate}` : ''} · {formatNumber(v.mileage)} km</span>
-              </div>
-              <span className="garage-cta"><Stethoscope size={15} />{t('garage.diagnose')}</span>
-            </Link>
-          </Item>
-        ))}
-        <Item>
-          <Link to="/vehicles?add=1" className="garage-card garage-add">
-            <span className="garage-add-icon"><Plus size={26} /></span>
-            <strong>{t('garage.add')}</strong>
-            <span>{t('garage.addText')}</span>
-          </Link>
-        </Item>
-      </Stagger>
-    </section>
   );
 }
