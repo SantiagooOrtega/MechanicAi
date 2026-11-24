@@ -40,15 +40,19 @@ export default function Dashboard() {
         </div>
         <Stagger className="quick-actions">
           {[
-            { to: totals.vehicles === 0 ? '/vehicles?add=1&next=diagnose' : '/diagnosis/new', icon: Stethoscope, title: t('qa.diagnose'), text: t('qa.diagnoseText'), primary: totals.vehicles > 0 },
-            { to: '/vehicles?add=1', icon: Car, title: t('qa.vehicle'), text: t('qa.vehicleText'), primary: totals.vehicles === 0 },
-            { to: '/maintenance', icon: Wrench, title: t('qa.maintenance'), text: t('qa.maintenanceText'), primary: false },
-          ].map(({ to, icon: Icon, title, text, primary }) => (
+            { to: totals.vehicles === 0 ? '/vehicles?add=1&next=diagnose' : '/diagnosis/new', icon: Stethoscope, title: t('qa.diagnose'), text: t('qa.diagnoseText'), image: 'garage/1-diagnostico.jpg' },
+            { to: '/vehicles?add=1', icon: Car, title: t('qa.vehicle'), text: t('qa.vehicleText'), image: 'garage/3-vehiculos.jpg' },
+            { to: '/maintenance', icon: Wrench, title: t('qa.maintenance'), text: t('qa.maintenanceText'), image: 'garage/4-mantenimiento.jpg' },
+          ].map(({ to, icon: Icon, title, text, image }) => (
             <Item key={title}>
-              <Link to={to} className={`qa-tile${primary ? ' primary' : ''}`}>
+              <Link to={to} className="qa-tile">
+                <img className="qa-bg" src={`${import.meta.env.BASE_URL}${image}`} alt="" aria-hidden draggable={false} />
                 <span className="qa-icon"><Icon size={22} /></span>
-                <span className="qa-text"><strong>{title}</strong><small>{text}</small></span>
-                <ArrowRight size={18} className="qa-arrow" />
+                <span className="qa-text">
+                  <strong>{title}</strong>
+                  <small>{text}</small>
+                </span>
+                <span className="qa-go">{t('qa.go')} <ArrowRight size={16} /></span>
               </Link>
             </Item>
           ))}

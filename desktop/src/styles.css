@@ -527,21 +527,22 @@ a.list-item:hover { transform: translateX(3px); }
 .dash-hero-text p { color: var(--text-2); font-size: 15.5px; margin-top: 4px; }
 .quick-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .qa-tile {
-  position: relative; display: flex; align-items: center; gap: 14px; padding: 18px; height: 100%;
-  border-radius: var(--radius); border: 1px solid var(--border); text-decoration: none; color: var(--text);
-  background: color-mix(in srgb, var(--surface) 80%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  transition: transform 0.2s var(--ease), border-color 0.2s, box-shadow 0.25s;
+  position: relative; isolation: isolate; overflow: hidden; display: flex; flex-direction: column; gap: 12px; height: 100%; min-height: 250px; padding: 20px;
+  border-radius: var(--radius); border: 1px solid rgba(255, 255, 255, 0.08); text-decoration: none; color: #fff; background: #111;
+  transition: transform 0.25s var(--ease), border-color 0.25s, box-shadow 0.3s;
 }
-.qa-tile:hover { transform: translateY(-3px); border-color: var(--accent-line); box-shadow: 0 14px 32px -16px var(--accent-solid); }
-.qa-tile.primary { background: linear-gradient(135deg, #ef5a5f, #c9353b); border-color: transparent; color: #fff; box-shadow: 0 14px 34px -14px rgba(217, 59, 65, 0.8); }
-.qa-icon { flex-shrink: 0; width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
-.qa-tile.primary .qa-icon { background: rgba(255, 255, 255, 0.18); color: #fff; }
-.qa-text { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.qa-text strong { font-size: 15.5px; font-family: var(--font-display); }
-.qa-text small { font-size: 12.5px; color: var(--text-2); line-height: 1.35; }
-.qa-tile.primary .qa-text small { color: rgba(255, 255, 255, 0.85); }
-.qa-arrow { flex-shrink: 0; opacity: 0.5; transition: transform 0.2s var(--ease), opacity 0.2s; }
-.qa-tile:hover .qa-arrow { transform: translateX(4px); opacity: 1; }
+/* foto de taller de fondo, oscurecida para que el texto se lea */
+.qa-bg { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; filter: saturate(0.9) brightness(0.9); transform: scale(1.04); transition: transform 0.6s var(--ease), filter 0.4s; }
+.qa-tile::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(10, 10, 11, 0.05) 0%, rgba(10, 10, 11, 0.45) 35%, rgba(10, 10, 11, 0.9) 75%, rgba(10, 10, 11, 0.96) 100%); }
+.qa-tile:hover { transform: translateY(-4px); border-color: rgba(239, 90, 95, 0.55); box-shadow: 0 22px 44px -22px rgba(217, 59, 65, 0.9); }
+.qa-tile:hover .qa-bg { transform: scale(1.12); filter: saturate(1.05) brightness(1); }
+.qa-icon { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; background: rgba(239, 90, 95, 0.2); color: #ff7a7e; backdrop-filter: blur(6px); border: 1px solid rgba(239, 90, 95, 0.35); }
+.qa-text { flex: 1; display: flex; flex-direction: column; gap: 6px; justify-content: flex-end; }
+.qa-text strong { font-size: 18px; font-family: var(--font-display); letter-spacing: -0.01em; }
+.qa-text small { font-size: 13px; color: rgba(255, 255, 255, 0.78); line-height: 1.45; }
+.qa-go { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #ff7a7e; }
+.qa-go svg { transition: transform 0.2s var(--ease); }
+.qa-tile:hover .qa-go svg { transform: translateX(4px); }
 @media (max-width: 980px) { .quick-actions { grid-template-columns: 1fr; } }
 
 /* ---------- Mis vehículos: tarjetas tipo garaje ---------- */
