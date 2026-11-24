@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Stagger, itemVariants } from '../components/motion';
-import { Car, Pencil, Plus, Stethoscope, Trash2 } from 'lucide-react';
+import { ArrowRight, Car, CheckCircle2, Pencil, Plus, Stethoscope, Trash2, X } from 'lucide-react';
 import { api } from '../api';
 import { useAsync } from '../useAsync';
 import { useT } from '../i18n';
@@ -61,6 +61,21 @@ export default function Vehicles() {
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [customBrand, setCustomBrand] = useState(false); // marca escrita a mano (no está en la lista)
+  const [justAdded, setJustAdded] = useState<Vehicle | null>(null);
+  const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
+  const nextStep = params.get('next'); // "diagnose": al guardar se va directo a diagnosticar
+
+  // ?add=1 (desde la guía o el diagnóstico) abre el formulario de una vez
+  useEffect(() => {
+    if (params.get('add') === '1') {
+      open();
+      const rest = new URLSearchParams(params);
+      rest.delete('add');
+      setParams(rest, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const open = (v?: Vehicle) => {
     setFormError(null);
@@ -80,7 +95,11 @@ export default function Vehicles() {
     setFormError(null);
     try {
       if (id) await api.put(`/vehicles/${id}`, body);
-      else await api.post('/vehicles', body);
+      else {
+        const { vehicle } = await api.post<{ vehicle: Vehicle }>('/vehicles', body);
+        if (nextStep === 'diagnose') { navigate(`/diagnosis/new?vehicle=${vehicle.id}`); return; }
+        setJustAdded(vehicle);
+      }
       setEditing(null);
       reload();
     } catch (err) {
@@ -110,6 +129,20 @@ export default function Vehicles() {
       <PageHead title={t('veh.title')} subtitle={t('veh.subtitle')}
         action={<button className="btn btn-primary" onClick={() => open()}><Plus size={16} />{t('veh.add')}</button>} />
       <ErrorAlert message={error} />
+
+      <AnimatePresence>
+        {justAdded && (
+          <motion.div className="card saved-banner" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+            <CheckCircle2 size={22} className="saved-icon" />
+            <div className="saved-text">
+              <strong>{t('veh.savedTitle', { name: `${justAdded.brand} ${justAdded.model}` })}</strong>
+              <span>{t('veh.savedText')}</span>
+            </div>
+            <Link to={`/diagnosis/new?vehicle=${justAdded.id}`} className="btn btn-primary"><Stethoscope size={16} />{t('veh.diagnoseNow')} <ArrowRight size={15} /></Link>
+            <button className="btn btn-ghost btn-icon btn-sm" onClick={() => setJustAdded(null)} aria-label={t('common.cancel')}><X size={16} /></button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {vehicles.length === 0 ? (
         <div className="card"><Empty icon={Car} title={t('veh.emptyTitle')} text={t('veh.emptyText')}
