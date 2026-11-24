@@ -189,6 +189,8 @@ button { cursor: pointer; }
   background: var(--surface-2); font-weight: 600; font-size: 13.5px;
   transition: background 0.15s, border-color 0.15s, transform 0.1s;
   white-space: nowrap;
+  /* los enlaces con estilo de botón (<a class="btn">) no deben verse azules ni subrayados */
+  color: var(--text); text-decoration: none; cursor: pointer;
 }
 .btn:hover { background: var(--surface-3); }
 .btn:active { transform: translateY(1px); }
