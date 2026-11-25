@@ -1,0 +1,25 @@
+# Despliegue del servidor de MechanicIA en Render (plan gratuito).
+# En render.com: New + → Blueprint → elegir este repositorio.
+# Los valores marcados con sync: false se escriben a mano en Render (no se suben a GitHub).
+services:
+  - type: web
+    name: mechanicia-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
