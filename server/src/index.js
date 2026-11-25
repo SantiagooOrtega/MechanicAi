@@ -15,6 +15,9 @@ const { language } = require('./middleware/language.middleware');
 const app = express();
 const PORT = process.env.PORT || 5002;
 
+// En la nube (Render) el servidor está detrás de un proxy: así el límite de peticiones ve la IP real
+if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
+
 app.use(helmet());
 // La app de escritorio no tiene un origen web fijo (file:// en producción)
 app.use(cors({ origin: true, allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language'] }));
