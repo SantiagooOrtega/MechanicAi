@@ -9,7 +9,9 @@
     "build": "tsc --noEmit && vite build",
     "start": "npm run build && electron .",
     "typecheck": "tsc --noEmit",
-    "dist:mac": "npm run build && electron-builder --mac dmg"
+    "dist:mac": "npm run build && electron-builder --mac dmg --arm64 --x64",
+    "dist:win": "npm run build && electron-builder --win zip --x64",
+    "dist": "npm run build && electron-builder --mac dmg --arm64 --x64 && electron-builder --win zip --x64"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
@@ -60,7 +62,20 @@
       "identity": null
     },
     "dmg": {
-      "title": "MechanicIA"
+      "title": "MechanicIA",
+      "artifactName": "MechanicIA-${version}-${arch}.${ext}"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": false,
+      "artifactName": "MechanicIA-${version}-Windows-${arch}.${ext}"
     }
   }
 }
