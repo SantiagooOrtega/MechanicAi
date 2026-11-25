@@ -5,3 +5,7 @@ dist/
 out/
 release/
 .DS_Store
+
+# Configuración local del asistente (no forma parte del proyecto)
+.claude/
+CLAUDE.md
