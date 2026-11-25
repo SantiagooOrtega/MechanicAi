@@ -8,7 +8,8 @@
     "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env ELECTRON_DEV=1 electron .\"",
     "build": "tsc --noEmit && vite build",
     "start": "npm run build && electron .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dist:mac": "npm run build && electron-builder --mac dmg"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
@@ -29,8 +30,37 @@
     "concurrently": "^10.0.6",
     "cross-env": "^10.1.0",
     "electron": "^44.9.0",
+    "electron-builder": "^26.0.12",
     "typescript": "^7.0.2",
     "vite": "^8.3.4",
     "wait-on": "^9.5.1"
+  },
+  "build": {
+    "appId": "com.mechanicia.desktop",
+    "productName": "MechanicIA",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "identity": null
+    },
+    "dmg": {
+      "title": "MechanicIA"
+    }
   }
 }
